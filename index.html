@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPM System & Role-Functional Matrix</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo-container">
+            <h1>
+                <span class="logo-icon"></span>
+                <span data-localize="appName">BPM Система</span>
+            </h1>
+        </div>
+        
+        <nav class="nav-links">
+            <a class="nav-item active" data-view="matrix">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span data-localize="navMatrix">Ролевая матрица</span>
+            </a>
+            <a class="nav-item" data-view="modeler">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span data-localize="navModeler">Конструктор процессов</span>
+            </a>
+            <a class="nav-item" data-view="tasks">
+                <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                <span data-localize="navTasks">Мои задачи</span>
+            </a>
+            <a class="nav-item" data-view="external">
+                <svg viewBox="0 0 24 24"><path d="M16 16v1a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h11a2 2 0 012 2v1M18 8h4a2 2 0 012 2v7a2 2 0 01-2 2h-4M10 12h4m-2-2v4"/></svg>
+                <span data-localize="navExternal">Внешний портал</span>
+            </a>
+            <a class="nav-item" data-view="analytics">
+                <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                <span data-localize="navAnalytics">Аналитика и SLA</span>
+            </a>
+            <a class="nav-item" data-view="admin">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                <span data-localize="navAdmin">Администрирование</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sim-time-box">
+                <div class="sim-time-label" data-localize="adminSimTime">Системное время</div>
+                <div class="sim-time-val" id="sim-clock">2026-07-13 15:48:00</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <header class="main-header">
+            <div class="header-left">
+                <h2 id="header-view-title" data-localize="matrixTitle">Ролевая матрица</h2>
+            </div>
+            
+            <div class="header-right">
+                <!-- User/Role Simulator Dropdown -->
+                <div class="sim-user-select-container">
+                    <label for="user-role-select" data-localize="userRole">Текущая роль:</label>
+                    <select id="user-role-select" class="sim-user-select">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                
+                <!-- Language Toggle -->
+                <div class="lang-toggle">
+                    <button class="lang-btn active" id="lang-ru">RU</button>
+                    <button class="lang-btn" id="lang-kk">KK</button>
+                </div>
+
+                <!-- Notifications icon -->
+                <div class="notification-bell" id="notif-bell-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9m-4.27 13a2 2 0 01-3.46 0"/></svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Drawer Popup -->
+        <div class="notifications-drawer" id="notif-drawer">
+            <div class="notif-header">
+                <span data-localize="notification">Уведомления</span>
+                <button class="notif-clear-btn" id="notif-clear-btn">Clear All</button>
+            </div>
+            <div class="notif-list" id="notif-list-container">
+                <!-- Notifications loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- VIEW 1: Role-Functional Matrix -->
+        <main class="view-container active" id="view-matrix">
+            <div class="view-title-container">
+                <h2 data-localize="matrixTitle">Единая ролево-функциональная матрица</h2>
+                <p data-localize="matrixDesc">Связь ролей сотрудников, их функций и процессов, в которых они участвуют.</p>
+            </div>
+
+            <div class="filter-bar">
+                <div style="flex-grow: 1; max-width: 300px;">
+                    <input type="text" class="form-control" id="matrix-search" data-placeholder="search" placeholder="Поиск по роли/отделу...">
+                </div>
+                <div>
+                    <select class="form-control" id="matrix-filter-process">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div style="margin-left: auto; display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" id="matrix-export-excel">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8M8 9h2"/></svg>
+                        <span data-localize="exportExcel">Экспорт Excel</span>
+                    </button>
+                    <button class="btn btn-secondary" id="matrix-export-pdf">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                        <span data-localize="exportPDF">Экспорт PDF</span>
+                    </button>
+                    <button class="btn btn-primary" id="matrix-add-row-btn">
+                        <span data-localize="matrixAddRow">Добавить роль</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="split-layout">
+                <div class="split-left">
+                    <div class="card matrix-card" style="height: 100%;">
+                        <div class="matrix-table-container">
+                            <table class="matrix-table" id="matrix-table-el">
+                                <thead>
+                                    <tr>
+                                        <th data-localize="matrixHeaderRole">Роль</th>
+                                        <th data-localize="matrixHeaderDept">Отдел</th>
+                                        <!-- Process columns loaded dynamically -->
+                                    </tr>
+                                </thead>
+                                <tbody id="matrix-table-body">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="split-right">
+                    <div class="card" style="height: 100%;">
+                        <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="matrixHistory">История изменений матрицы</h3>
+                        <div class="matrix-history-list" id="matrix-history-container">
+                            <!-- Matrix version logs -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 2: Process Modeler -->
+        <main class="view-container" id="view-modeler">
+            <div class="view-title-container">
+                <h2 data-localize="modelerTitle">Моделирование бизнес-процессов</h2>
+                <p data-localize="modelerDesc">Проектирование и настройка шагов процесса в нотации BPMN.</p>
+            </div>
+
+            <div class="split-layout">
+                <!-- Modeler Canvas Column -->
+                <div class="split-left">
+                    <div class="filter-bar" style="margin-bottom: 12px;">
+                        <select class="form-control" id="modeler-process-select" style="max-width: 320px;">
+                            <!-- Templates list -->
+                        </select>
+                        <button class="btn btn-secondary" id="modeler-new-btn">
+                            <span data-localize="add">Создать</span>
+                        </button>
+                        <button class="btn btn-primary" id="modeler-save-btn" style="margin-left: auto;">
+                            <span data-localize="modelerSaveTemplate">Сохранить</span>
+                        </button>
+                        <button class="btn btn-danger" id="modeler-run-btn">
+                            <span data-localize="modelerRunSim">Запуск симуляции</span>
+                        </button>
+                    </div>
+
+                    <div class="modeler-canvas-wrapper">
+                        <!-- Palette toolbar overlay -->
+                        <div class="modeler-toolbar">
+                            <button class="modeler-tool active" id="tool-select" title="Выбор и перемещение">
+                                <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3zM13 13l6 6"/></svg>
+                            </button>
+                            <button class="modeler-tool" id="tool-task" title="Добавить задачу">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17h6M9 12h6M9 7h6"/></svg>
+                            </button>
+                            <button class="modeler-tool" id="tool-gateway" title="Добавить шлюз (Условие)">
+                                <svg viewBox="0 0 24 24"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>
+                            </button>
+                            <button class="modeler-tool" id="tool-external" title="Добавить внешний этап">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/></svg>
+                            </button>
+                            <button class="modeler-tool" id="tool-connect" title="Соединить элементы">
+                                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
+                            <button class="modeler-tool" id="tool-delete" title="Удалить выбранное" style="color:var(--danger)">
+                                <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Drawing canvas -->
+                        <svg class="modeler-canvas" id="modeler-svg-canvas">
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" class="bpmn-connection-arrow"/>
+                                </marker>
+                                <marker id="arrow-selected" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/>
+                                </marker>
+                            </defs>
+                            <!-- Visual nodes and paths are generated here -->
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Inspector panel Column -->
+                <div class="split-right">
+                    <div class="card inspector-card" id="modeler-inspector-panel">
+                        <div class="inspector-empty" id="inspector-empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                            <p>Выберите элемент на холсте для редактирования его параметров</p>
+                        </div>
+                        
+                        <div class="inspector-form" id="inspector-form-state" style="display: none;">
+                            <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 20px;" data-localize="modelerInspector">Свойства элемента</h3>
+                            <input type="hidden" id="inspect-node-id">
+                            
+                            <div class="form-group">
+                                <label for="inspect-node-name" data-localize="modelerNodeName">Название шага</label>
+                                <input type="text" class="form-control" id="inspect-node-name">
+                            </div>
+
+                            <div class="form-group" id="inspect-role-group">
+                                <label for="inspect-node-role" data-localize="modelerNodeAssignee">Исполнитель (Роль)</label>
+                                <select class="form-control" id="inspect-node-role">
+                                    <!-- Dynamic roles -->
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="inspect-sla-group">
+                                <label for="inspect-node-sla" data-localize="modelerNodeSLA">Срок выполнения (часы)</label>
+                                <input type="number" class="form-control" id="inspect-node-sla" min="1">
+                            </div>
+
+                            <div class="form-group" id="inspect-gateway-group" style="display: none;">
+                                <label for="inspect-node-cond" data-localize="modelerGatewayCond">Условие перехода (expression)</label>
+                                <input type="text" class="form-control" id="inspect-node-cond" placeholder="например, budget > 1000000">
+                                
+                                <label for="inspect-node-yes" style="margin-top: 10px;" data-localize="modelerGatewayTarget">Шаг при Согласии (Да)</label>
+                                <select class="form-control" id="inspect-node-yes">
+                                    <!-- Dynamic node targets -->
+                                </select>
+
+                                <label for="inspect-node-no" style="margin-top: 10px;" data-localize="modelerGatewayTargetNo">Шаг при Отказе (Нет)</label>
+                                <select class="form-control" id="inspect-node-no">
+                                    <!-- Dynamic node targets -->
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-primary" id="inspect-apply-btn" style="width: 100%; margin-top: 10px;">
+                                <span data-localize="apply">Применить</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 3: My Tasks / Inbox -->
+        <main class="view-container" id="view-tasks">
+            <div class="view-title-container" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 data-localize="tasksTitle">Кросс-функциональный реестр задач</h2>
+                    <p data-localize="tasksDesc">Управление задачами, передача между отделами и контроль SLA.</p>
+                </div>
+                <button class="btn btn-primary" id="tasks-new-instance-btn">
+                    <span data-localize="tasksLaunchBtn">Новый процесс</span>
+                </button>
+            </div>
+
+            <div class="filter-bar">
+                <button class="btn btn-primary" id="tab-tasks-active" data-localize="tasksActive">Активные задачи</button>
+                <button class="btn btn-secondary" id="tab-tasks-completed" data-localize="tasksDone">Архив задач</button>
+            </div>
+
+            <!-- Active tasks grid -->
+            <div class="tasks-grid" id="tasks-active-container">
+                <!-- Task cards load dynamically -->
+            </div>
+            
+            <!-- Archived tasks grid (hidden initially) -->
+            <div class="tasks-grid" id="tasks-completed-container" style="display: none;">
+                <!-- Task cards load dynamically -->
+            </div>
+        </main>
+
+        <!-- VIEW 4: External Portal -->
+        <main class="view-container" id="view-external">
+            <div class="view-title-container">
+                <h2 data-localize="externalTitle">Портал взаимодействия с внешними организациями</h2>
+                <p data-localize="externalDesc">Оцифрованный обмен данными с внешними контрагентами и ведомствами.</p>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="externalTableTitle">Запросы во внешние организации</h3>
+                <div class="matrix-table-container">
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th data-localize="tasksTaskProcess">Процесс</th>
+                                <th data-localize="tasksTaskName">Задача</th>
+                                <th data-localize="externalSender">Отправитель</th>
+                                <th data-localize="externalReceiver">Внешняя организация</th>
+                                <th data-localize="status">Статус</th>
+                                <th data-localize="actions">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="external-portal-table-body">
+                            <!-- Dynamic row listings -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 5: Analytics and SLA -->
+        <main class="view-container" id="view-analytics">
+            <div class="view-title-container">
+                <h2 data-localize="analyticsTitle">Контроль, мониторинг и аналитика</h2>
+                <p data-localize="analyticsDesc">Мониторинг исполнения процессов, аналитика SLA и загруженности в реальном времени.</p>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="kpi-row">
+                <div class="card kpi-card">
+                    <div class="kpi-val primary" id="kpi-active-count">0</div>
+                    <div class="kpi-label" data-localize="analyticsKPIActive">Активных инстансов</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-val success" id="kpi-completed-count">0</div>
+                    <div class="kpi-label" data-localize="analyticsKPIDone">Завершенных инстансов</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-val warning" id="kpi-sla-compliance">100%</div>
+                    <div class="kpi-label" data-localize="analyticsKPISLA">Соблюдение SLA</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-val danger" id="kpi-avg-duration">0 ч</div>
+                    <div class="kpi-label" data-localize="analyticsKPIAvgTime">Ср. время цикла</div>
+                </div>
+            </div>
+
+            <div class="analytics-charts-grid">
+                <!-- Chart 1: Average process time -->
+                <div class="card">
+                    <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="analyticsChartPerformance">Время выполнения по процессам</h3>
+                    <div class="svg-chart-container" id="chart-process-time">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Chart 2: Department Workload -->
+                <div class="card">
+                    <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="analyticsChartLoad">Нагрузка по отделам</h3>
+                    <div class="svg-chart-container" id="chart-dept-load">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLA Bottlenecks -->
+            <div class="card" style="margin-top: 24px;">
+                <h3 style="font-size: 1rem; font-weight:600; margin-bottom:16px;" data-localize="analyticsBottlenecks">Узкие места и SLA инциденты</h3>
+                <div class="matrix-table-container">
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th data-localize="tasksTaskProcess">Процесс</th>
+                                <th data-localize="tasksTaskName">Задача</th>
+                                <th data-localize="responsible">Ответственный</th>
+                                <th data-localize="deadline">Срок SLA (часы)</th>
+                                <th data-localize="status">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analytics-bottleneck-body">
+                            <!-- dynamic instances -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 6: Administration -->
+        <main class="view-container" id="view-admin">
+            <div class="view-title-container">
+                <h2 data-localize="adminTitle">Панель администрирования</h2>
+                <p data-localize="adminDesc">Настройка справочников, управление пользователями и параметрами симуляции.</p>
+            </div>
+
+            <div class="admin-settings-row">
+                <!-- Departments catalog -->
+                <div class="card">
+                    <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="adminSectionDepts">Справочник отделов</h3>
+                    <ul class="admin-list" id="admin-depts-list">
+                        <!-- Loaded dynamically -->
+                    </ul>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" class="form-control" id="admin-add-dept-name-ru" placeholder="Отдел (RU)">
+                        <input type="text" class="form-control" id="admin-add-dept-name-kk" placeholder="Бөлім (KK)">
+                        <button class="btn btn-primary" id="admin-add-dept-btn" data-localize="add">Добавить</button>
+                    </div>
+                </div>
+
+                <!-- Roles catalog -->
+                <div class="card">
+                    <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="adminSectionRoles">Справочник ролей</h3>
+                    <ul class="admin-list" id="admin-roles-list">
+                        <!-- Loaded dynamically -->
+                    </ul>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-control" id="admin-add-role-name-ru" placeholder="Роль (RU)">
+                            <input type="text" class="form-control" id="admin-add-role-name-kk" placeholder="Роль (KK)">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <select class="form-control" id="admin-add-role-dept">
+                                <!-- departments list -->
+                            </select>
+                            <button class="btn btn-primary" id="admin-add-role-btn" data-localize="add">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulator settings -->
+                <div class="card">
+                    <h3 style="font-size: 1rem; font-weight:600; margin-bottom: 16px;" data-localize="adminSectionSim">Управление симулятором</h3>
+                    <div class="form-group">
+                        <label for="admin-sim-speed-val" data-localize="adminSimSpeed">Скорость времени симулятора</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="range" id="admin-sim-speed-slider" min="0.1" max="10" step="0.1" value="1" style="flex-grow: 1;">
+                            <span id="admin-sim-speed-label" style="font-family: monospace; font-weight: bold; width: 40px; text-align: right;">1x</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-danger" id="admin-sim-reset-btn" style="width: 100%; margin-top: 10px;" onclick="if(confirm('Вы действительно хотите сбросить все изменения? / Өзгерістерді нөлге түсіруді растайсыз ба?')){ localStorage.clear(); window.location.reload(); }">
+                        <span data-localize="adminSimReset">Сбросить данные к исходным</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: Create New Process Instance -->
+    <div class="modal-overlay" id="modal-new-instance">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-localize="tasksLaunchTitle">Запуск нового процесса</span>
+                <button class="modal-close" id="modal-new-instance-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modal-inst-template" data-localize="tasksLaunchSelect">Выберите шаблон процесса</label>
+                    <select class="form-control" id="modal-inst-template">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-inst-name" data-localize="tasksLaunchName">Название процесса (инстанса)</label>
+                    <input type="text" class="form-control" id="modal-inst-name" placeholder="например, Закупка ноутбуков IT-отделу">
+                </div>
+                <div class="form-group" id="modal-inst-vars-container">
+                    <label for="modal-inst-budget">Бюджет (тенге)</label>
+                    <input type="number" class="form-control" id="modal-inst-budget" value="100000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-new-instance-cancel" data-localize="cancel">Отмена</button>
+                <button class="btn btn-primary" id="modal-new-instance-start" data-localize="tasksLaunchStart">Запустить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Edit Matrix Cell Mapping -->
+    <div class="modal-overlay" id="modal-matrix-cell">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-localize="edit">Редактировать ячейку</span>
+                <button class="modal-close" id="modal-matrix-cell-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-localize="role">Роль</label>
+                    <input type="text" class="form-control" id="modal-cell-role-name" readonly style="background: rgba(0,0,0,0.2);">
+                </div>
+                <div class="form-group">
+                    <label data-localize="process">Процесс</label>
+                    <input type="text" class="form-control" id="modal-cell-proc-name" readonly style="background: rgba(0,0,0,0.2);">
+                </div>
+                <div class="form-group">
+                    <label for="modal-cell-function" data-localize="matrixHeaderFunc">Функция в процессе</label>
+                    <textarea class="form-control" id="modal-cell-function" rows="3" placeholder="Введите ответственность роли в этом процессе..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-matrix-cell-cancel" data-localize="cancel">Отмена</button>
+                <button class="btn btn-primary" id="modal-matrix-cell-save" data-localize="save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Matrix Row Addition -->
+    <div class="modal-overlay" id="modal-matrix-row">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-localize="matrixAddRow">Добавить роль в матрицу</span>
+                <button class="modal-close" id="modal-matrix-row-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modal-row-role" data-localize="role">Роль / Должность</label>
+                    <select class="form-control" id="modal-row-role">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-row-process" data-localize="process">Процесс</label>
+                    <select class="form-control" id="modal-row-process">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-row-func" data-localize="matrixHeaderFunc">Функция</label>
+                    <input type="text" class="form-control" id="modal-row-func" placeholder="Описание функции">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-matrix-row-cancel" data-localize="cancel">Отмена</button>
+                <button class="btn btn-primary" id="modal-matrix-row-save" data-localize="add">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Matrix History Comment Commit -->
+    <div class="modal-overlay" id="modal-matrix-version-comment">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span data-localize="matrixHistoryTitle">Сохранение версии матрицы</span>
+                <button class="modal-close" id="modal-matrix-version-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modal-version-comment">Комментарий к изменениям</label>
+                    <input type="text" class="form-control" id="modal-version-comment" placeholder="Например: Обновление регламента юротдела">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-matrix-version-cancel" data-localize="cancel">Отмена</button>
+                <button class="btn btn-primary" id="modal-matrix-version-save" data-localize="save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts container -->
+    <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 350px;"></div>
+
+    <!-- Script imports -->
+    <script type="module" src="app.js?v=1.0.3"></script>
+</body>
+</html>
