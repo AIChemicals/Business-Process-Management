@@ -214,6 +214,17 @@
                             </defs>
                             <!-- Visual nodes and paths are generated here -->
                         </svg>
+
+                        <!-- Zoom & Pan controls -->
+                        <div class="modeler-zoom-controls">
+                            <button id="zoom-in-btn" title="Приблизить">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                            <button id="zoom-value" title="Сбросить масштаб">100%</button>
+                            <button id="zoom-out-btn" title="Отдалить">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -222,7 +233,7 @@
                     <div class="card inspector-card" id="modeler-inspector-panel">
                         <div class="inspector-empty" id="inspector-empty-state">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                            <p>Выберите элемент на холсте для редактирования его параметров</p>
+                            <p data-localize="modelerInspectorEmpty">Выберите элемент на холсте для редактирования его параметров</p>
                         </div>
                         
                         <div class="inspector-form" id="inspector-form-state" style="display: none;">
@@ -248,7 +259,7 @@
 
                             <div class="form-group" id="inspect-gateway-group" style="display: none;">
                                 <label for="inspect-node-cond" data-localize="modelerGatewayCond">Условие перехода (expression)</label>
-                                <input type="text" class="form-control" id="inspect-node-cond" placeholder="например, budget > 1000000">
+                                <input type="text" class="form-control" id="inspect-node-cond" data-placeholder="modelerGatewayCondPlaceholder" placeholder="например, budget > 1000000">
                                 
                                 <label for="inspect-node-yes" style="margin-top: 10px;" data-localize="modelerGatewayTarget">Шаг при Согласии (Да)</label>
                                 <select class="form-control" id="inspect-node-yes">
@@ -446,7 +457,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-danger" id="admin-sim-reset-btn" style="width: 100%; margin-top: 10px;" onclick="if(confirm('Вы действительно хотите сбросить все изменения? / Өзгерістерді нөлге түсіруді растайсыз ба?')){ localStorage.clear(); window.location.reload(); }">
+                    <button class="btn btn-danger" id="admin-sim-reset-btn" style="width: 100%; margin-top: 10px;">
                         <span data-localize="adminSimReset">Сбросить данные к исходным</span>
                     </button>
                 </div>
@@ -470,10 +481,10 @@
                 </div>
                 <div class="form-group">
                     <label for="modal-inst-name" data-localize="tasksLaunchName">Название процесса (инстанса)</label>
-                    <input type="text" class="form-control" id="modal-inst-name" placeholder="например, Закупка ноутбуков IT-отделу">
+                    <input type="text" class="form-control" id="modal-inst-name" data-placeholder="modalInstNamePlaceholder" placeholder="например, Закупка ноутбуков IT-отделу">
                 </div>
                 <div class="form-group" id="modal-inst-vars-container">
-                    <label for="modal-inst-budget">Бюджет (тенге)</label>
+                    <label for="modal-inst-budget" data-localize="budgetLabel">Бюджет (тенге)</label>
                     <input type="number" class="form-control" id="modal-inst-budget" value="100000">
                 </div>
             </div>
@@ -502,7 +513,7 @@
                 </div>
                 <div class="form-group">
                     <label for="modal-cell-function" data-localize="matrixHeaderFunc">Функция в процессе</label>
-                    <textarea class="form-control" id="modal-cell-function" rows="3" placeholder="Введите ответственность роли в этом процессе..."></textarea>
+                    <textarea class="form-control" id="modal-cell-function" rows="3" data-placeholder="modalCellFunctionPlaceholder" placeholder="Введите ответственность роли в этом процессе..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -534,7 +545,7 @@
                 </div>
                 <div class="form-group">
                     <label for="modal-row-func" data-localize="matrixHeaderFunc">Функция</label>
-                    <input type="text" class="form-control" id="modal-row-func" placeholder="Описание функции">
+                    <input type="text" class="form-control" id="modal-row-func" data-placeholder="modalRowFuncPlaceholder" placeholder="Описание функции">
                 </div>
             </div>
             <div class="modal-footer">
@@ -553,8 +564,8 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="modal-version-comment">Комментарий к изменениям</label>
-                    <input type="text" class="form-control" id="modal-version-comment" placeholder="Например: Обновление регламента юротдела">
+                    <label for="modal-version-comment" data-localize="versionCommentLabel">Комментарий к изменениям</label>
+                    <input type="text" class="form-control" id="modal-version-comment" data-placeholder="versionCommentPlaceholder" placeholder="Например: Обновление регламента юротдела">
                 </div>
             </div>
             <div class="modal-footer">
@@ -564,10 +575,30 @@
         </div>
     </div>
 
+    <!-- CUSTOM DIALOGS MODAL -->
+    <div class="modal-overlay" id="modal-custom-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="custom-dialog-title">Title</span>
+                <button class="modal-close" id="custom-dialog-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="custom-dialog-message" style="margin-bottom: 16px; font-size: 0.95rem; line-height: 1.5; color: var(--text-main);"></p>
+                <div id="custom-dialog-inputs-container">
+                    <!-- Dynamic inputs for prompts will be generated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="custom-dialog-cancel">Cancel</button>
+                <button class="btn btn-primary" id="custom-dialog-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toasts container -->
     <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 350px;"></div>
 
     <!-- Script imports -->
-    <script type="module" src="app.js?v=1.0.3"></script>
+    <script type="module" src="app.js?v=1.0.5"></script>
 </body>
 </html>

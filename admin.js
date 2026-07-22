@@ -1,5 +1,6 @@
-import db from './data.js';
-import { updateSimulationSpeed } from './engine.js';
+import db from './data.js?v=1.0.5';
+import { updateSimulationSpeed } from './engine.js?v=1.0.5';
+import { customAlert, customConfirm } from './dialogs.js?v=1.0.5';
 
 let currentLanguage = 'ru';
 
@@ -129,7 +130,7 @@ function removeDepartment(deptId) {
     // Check if roles are associated with this dept
     const hasRoles = db.roles.some(r => r.deptId === deptId);
     if (hasRoles) {
-        alert(currentLanguage === 'ru' 
+        customAlert(currentLanguage === 'ru' 
             ? 'Ошибка: невозможно удалить отдел, в котором содержатся активные роли!' 
             : 'Қате: ішінде белсенді рольдері бар бөлімді жою мүмкін емес!');
         return;
@@ -159,8 +160,8 @@ function addRole() {
     window.dispatchEvent(new CustomEvent('db-updated'));
 }
 
-function removeRole(roleId) {
-    if (confirm(currentLanguage === 'ru' ? 'Удалить эту роль из справочника?' : 'Бұл рольді анықтамалықтан жою керек пе?')) {
+async function removeRole(roleId) {
+    if (await customConfirm(currentLanguage === 'ru' ? 'Удалить эту роль из справочника?' : 'Бұл рольді анықтамалықтан жою керек пе?')) {
         db.roles = db.roles.filter(r => r.id !== roleId);
         db.save();
         renderRoles();
@@ -168,8 +169,8 @@ function removeRole(roleId) {
     }
 }
 
-function resetDatabase() {
-    if (confirm(currentLanguage === 'ru' 
+async function resetDatabase() {
+    if (await customConfirm(currentLanguage === 'ru' 
         ? 'Вы действительно хотите сбросить все изменения? Это удалит ваши процессы, задачи и настройки.' 
         : 'Шынымен барлық өзгерістерді нөлге түсіргіңіз келе ме? Бұл сіздің процестеріңізді, тапсырмаларыңызды және баптауларыңызды жояды.')) {
         db.reset();

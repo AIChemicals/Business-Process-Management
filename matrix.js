@@ -1,4 +1,5 @@
-import db from './data.js';
+import db from './data.js?v=1.0.5';
+import { customConfirm } from './dialogs.js?v=1.0.5';
 
 let currentLanguage = 'ru';
 let activeProcessFilter = 'all';
@@ -138,9 +139,22 @@ export function renderMatrix() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-weight: 600;">${roleName}</td>
+            <td style="font-weight: 600;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span>${roleName}</span>
+                    <button class="role-delete-btn" data-id="${role.id}" title="${currentLanguage === 'ru' ? 'Удалить роль' : 'Рольді жою'}" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 2px 6px; transition: opacity 0.2s; opacity: 0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">&times;</button>
+                </div>
+            </td>
             <td style="color: var(--text-muted);">${deptName}</td>
         `;
+
+        const deleteBtn = tr.querySelector('.role-delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteRoleFromMatrix(role.id);
+            });
+        }
 
         processes.forEach(proc => {
             // Find function cell in database mapping
@@ -160,6 +174,39 @@ export function renderMatrix() {
 
         tableBody.appendChild(tr);
     });
+}
+
+async function deleteRoleFromMatrix(roleId) {
+    const role = db.roles.find(r => r.id === roleId);
+    if (!role) return;
+
+    const confirmMsg = currentLanguage === 'ru' 
+        ? `Вы действительно хотите удалить роль "${role.nameRu}"? Это удалит все её связи в ролевой матрице.`
+        : `"${role.nameKk}" рөлін жойғыңыз келе ме? Бұл оның роледік матрицадағы барлық байланыстарын жояды.`;
+
+    if (await customConfirm(confirmMsg)) {
+        // Remove from db.roles
+        db.roles = db.roles.filter(r => r.id !== roleId);
+        // Remove from db.matrix
+        db.matrix = db.matrix.filter(m => m.roleId !== roleId);
+        
+        matrixDirty = true;
+        db.save();
+        
+        // Notify other components (this updates simulation role drop selectors, matrix view, and admin list)
+        window.dispatchEvent(new CustomEvent('db-updated'));
+        
+        // Notify with toast
+        const event = new CustomEvent('show-toast', {
+            detail: {
+                message: currentLanguage === 'ru' ? 'Роль успешно удалена!' : 'Рөл сәтті жойылды!',
+                type: 'warning'
+            }
+        });
+        window.dispatchEvent(event);
+
+        promptVersionCommit();
+    }
 }
 
 function openEditCellModal(roleId, processId, currentFunc) {
@@ -322,11 +369,11 @@ function renderHistory() {
     });
 }
 
-function rollbackTo(versionId) {
+async function rollbackTo(versionId) {
     const target = db.matrixVersions.find(v => v.version === versionId);
     if (!target) return;
 
-    if (confirm(currentLanguage === 'ru' ? `Вы действительно хотите откатить матрицу к версии v${versionId}?` : `Матрицаны шынымен v${versionId} нұсқасына қайтарғыңыз келе ме?`)) {
+    if (await customConfirm(currentLanguage === 'ru' ? `Вы действительно хотите откатить матрицу к версии v${versionId}?` : `Матрицаны шынымен v${versionId} нұсқасына қайтарғыңыз келе ме?`)) {
         db.matrix = JSON.parse(JSON.stringify(target.matrix));
         
         // Add a new log recording the rollback event

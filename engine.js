@@ -1,4 +1,5 @@
-import db from './data.js';
+import db from './data.js?v=1.0.5';
+import { customAlert } from './dialogs.js?v=1.0.5';
 
 let currentLanguage = 'ru';
 let activeUserRoleId = 'role_initiator';
@@ -100,7 +101,7 @@ function startNewProcessInstance() {
     // Find starting task node connected from Start Event
     const startConn = template.connections.find(c => c.from === 'node_start');
     if (!startConn) {
-        alert(currentLanguage === 'ru' ? 'Ошибка: шаблон не содержит соединения от Старт ноды' : 'Қате: үлгіде Бастау торабынан байланыс жоқ');
+        customAlert(currentLanguage === 'ru' ? 'Ошибка: шаблон не содержит соединения от Старт ноды' : 'Қате: үлгіде Бастау торабынан байланыс жоқ');
         return;
     }
 

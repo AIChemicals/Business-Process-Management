@@ -1,10 +1,11 @@
-import db from './data.js';
-import translations from './locale.js';
-import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js';
-import { initModeler, updateLanguage as updateModelerLang } from './modeler.js';
-import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js';
-import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js';
-import { initAdmin, updateLanguage as updateAdminLang } from './admin.js';
+import db from './data.js?v=1.0.5';
+import translations from './locale.js?v=1.0.5';
+import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js?v=1.0.5';
+import { initModeler, updateLanguage as updateModelerLang } from './modeler.js?v=1.0.5';
+import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js?v=1.0.5';
+import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js?v=1.0.5';
+import { initAdmin, updateLanguage as updateAdminLang } from './admin.js?v=1.0.5';
+import { setDialogsLanguage } from './dialogs.js?v=1.0.5';
 
 let currentLanguage = 'ru';
 let activeUserRoleId = 'role_initiator';
@@ -17,6 +18,8 @@ window.addEventListener('DOMContentLoaded', () => {
     cacheElements();
     setupGlobalListeners();
     loadSession();
+    
+    setDialogsLanguage(currentLanguage);
     
     // Boot Modules
     translateDOM();
@@ -169,6 +172,7 @@ function changeLanguage(lang) {
     if (currentLanguage === lang) return;
     currentLanguage = lang;
     localStorage.setItem('bpm_lang', lang);
+    setDialogsLanguage(lang);
 
     if (lang === 'ru') {
         btnRu.classList.add('active');

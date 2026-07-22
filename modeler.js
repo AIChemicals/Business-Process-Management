@@ -1,4 +1,5 @@
-import db from './data.js';
+import db from './data.js?v=1.0.5';
+import { customPrompt } from './dialogs.js?v=1.0.5';
 
 let currentLanguage = 'ru';
 let activeTemplate = null;
@@ -12,6 +13,16 @@ let dragNode = null;
 let dragOffset = { x: 0, y: 0 };
 let connectStartNode = null;
 let tempLine = null;
+
+// Pan & Zoom states
+let panX = 0;
+let panY = 0;
+let zoom = 1.0;
+let isPanning = false;
+let startPanX = 0;
+let startPanY = 0;
+let startClientX = 0;
+let startClientY = 0;
 
 // DOM Elements
 let canvasWrapper, svgCanvas, processSelect, newBtn, saveBtn, runBtn;
@@ -98,8 +109,21 @@ function setupListeners() {
 
     // Canvas Events
     svgCanvas.addEventListener('mousedown', onCanvasMouseDown);
-    svgCanvas.addEventListener('mousemove', onCanvasMouseMove);
+    window.addEventListener('mousemove', onCanvasMouseMove);
     window.addEventListener('mouseup', onCanvasMouseUp);
+
+    // Zoom & Pan listeners
+    canvasWrapper.addEventListener('wheel', onCanvasWheel, { passive: false });
+
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const zoomValBtn = document.getElementById('zoom-value');
+
+    if (zoomInBtn) zoomInBtn.addEventListener('click', zoomIn);
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', zoomOut);
+    if (zoomValBtn) zoomValBtn.addEventListener('click', resetZoom);
+
+    window.addEventListener('resize', updateViewBox);
 }
 
 function populateProcessList() {
@@ -117,6 +141,46 @@ function populateProcessList() {
 function loadTemplate(templateId) {
     activeTemplate = db.templates.find(t => t.id === templateId);
     clearSelection();
+    resetZoom();
+}
+
+function updateViewBox() {
+    if (!svgCanvas) return;
+    const rect = svgCanvas.getBoundingClientRect();
+    const w = rect.width || 800;
+    const h = rect.height || 500;
+    svgCanvas.setAttribute('viewBox', `${panX} ${panY} ${w * zoom} ${h * zoom}`);
+
+    const zoomValEl = document.getElementById('zoom-value');
+    if (zoomValEl) {
+        zoomValEl.textContent = Math.round(100 / zoom) + '%';
+    }
+}
+
+function zoomTo(newZoom, centerX, centerY) {
+    panX = panX + centerX * (zoom - newZoom);
+    panY = panY + centerY * (zoom - newZoom);
+    zoom = newZoom;
+    updateViewBox();
+}
+
+function zoomIn() {
+    const rect = svgCanvas.getBoundingClientRect();
+    const newZoom = Math.max(0.3, zoom / 1.15);
+    zoomTo(newZoom, rect.width / 2, rect.height / 2);
+}
+
+function zoomOut() {
+    const rect = svgCanvas.getBoundingClientRect();
+    const newZoom = Math.min(3.0, zoom * 1.15);
+    zoomTo(newZoom, rect.width / 2, rect.height / 2);
+}
+
+function resetZoom() {
+    panX = 0;
+    panY = 0;
+    zoom = 1.0;
+    updateViewBox();
     renderCanvas();
 }
 
@@ -132,6 +196,8 @@ function clearSelection() {
 
 function renderCanvas() {
     if (!svgCanvas || !activeTemplate) return;
+    
+    updateViewBox();
     
     // Clear previous drawing, keeping <defs> marker styles
     const defs = svgCanvas.querySelector('defs');
@@ -395,6 +461,20 @@ function onCanvasMouseDown(e) {
     const pathTarget = e.target.closest('.bpmn-connection');
     const coords = getCanvasCoords(e);
 
+    // If clicking on empty space (not a node and not a connection)
+    if (!target && !pathTarget) {
+        if (['select', 'connect', 'delete'].includes(currentTool)) {
+            clearSelection();
+            isPanning = true;
+            startPanX = panX;
+            startPanY = panY;
+            startClientX = e.clientX;
+            startClientY = e.clientY;
+            canvasWrapper.style.cursor = 'grabbing';
+            return;
+        }
+    }
+
     if (currentTool === 'select') {
         if (target) {
             isDragging = true;
@@ -406,8 +486,6 @@ function onCanvasMouseDown(e) {
             selectNode(dragNode);
         } else if (pathTarget) {
             selectConnection(pathTarget.dataset.from, pathTarget.dataset.to);
-        } else {
-            clearSelection();
         }
     } else if (currentTool === 'connect') {
         if (target) {
@@ -425,43 +503,45 @@ function onCanvasMouseDown(e) {
             svgCanvas.appendChild(tempLine);
         }
     } else if (['task', 'gateway', 'external'].includes(currentTool)) {
-        // Place new Node
-        const newNodeId = `node_${Date.now()}`;
-        const type = currentTool;
-        let nameRu = '', nameKk = '';
-        
-        if (type === 'task') {
-            nameRu = 'Новая задача'; nameKk = 'Жаңа тапсырма';
-        } else if (type === 'gateway') {
-            nameRu = 'Новый шлюз'; nameKk = 'Жаңа шлюз';
-        } else {
-            nameRu = 'Внешний запрос'; nameKk = 'Сыртқы сұраныс';
+        if (!target && !pathTarget) {
+            // Place new Node
+            const newNodeId = `node_${Date.now()}`;
+            const type = currentTool;
+            let nameRu = '', nameKk = '';
+            
+            if (type === 'task') {
+                nameRu = 'Новая задача'; nameKk = 'Жаңа тапсырма';
+            } else if (type === 'gateway') {
+                nameRu = 'Новый шлюз'; nameKk = 'Жаңа шлюз';
+            } else {
+                nameRu = 'Внешний запрос'; nameKk = 'Сыртқы сұраныс';
+            }
+
+            const node = {
+                id: newNodeId,
+                type,
+                nameRu,
+                nameKk,
+                x: Math.round(coords.x),
+                y: Math.round(coords.y)
+            };
+
+            if (type === 'task' || type === 'external') {
+                node.roleId = 'role_initiator';
+                node.sla = 24;
+            } else if (type === 'gateway') {
+                node.condition = 'budget > 1000000';
+                node.targetYes = '';
+                node.targetNo = '';
+            }
+
+            activeTemplate.nodes.push(node);
+            renderCanvas();
+            selectNode(node);
+            
+            // Reset tool to select
+            resetTool();
         }
-
-        const node = {
-            id: newNodeId,
-            type,
-            nameRu,
-            nameKk,
-            x: Math.round(coords.x),
-            y: Math.round(coords.y)
-        };
-
-        if (type === 'task' || type === 'external') {
-            node.roleId = 'role_initiator';
-            node.sla = 24;
-        } else if (type === 'gateway') {
-            node.condition = 'budget > 1000000';
-            node.targetYes = '';
-            node.targetNo = '';
-        }
-
-        activeTemplate.nodes.push(node);
-        renderCanvas();
-        selectNode(node);
-        
-        // Reset tool to select
-        resetTool();
     } else if (currentTool === 'delete') {
         if (target) {
             const nodeId = target.dataset.id;
@@ -474,6 +554,15 @@ function onCanvasMouseDown(e) {
 }
 
 function onCanvasMouseMove(e) {
+    if (isPanning) {
+        const dx = e.clientX - startClientX;
+        const dy = e.clientY - startClientY;
+        panX = startPanX - dx * zoom;
+        panY = startPanY - dy * zoom;
+        updateViewBox();
+        return;
+    }
+
     const coords = getCanvasCoords(e);
 
     if (isDragging && dragNode) {
@@ -487,6 +576,11 @@ function onCanvasMouseMove(e) {
 }
 
 function onCanvasMouseUp(e) {
+    if (isPanning) {
+        isPanning = false;
+        canvasWrapper.style.cursor = 'grab';
+        return;
+    }
     if (isDragging) {
         isDragging = false;
         dragNode = null;
@@ -525,11 +619,34 @@ function onCanvasMouseUp(e) {
     }
 }
 
+function onCanvasWheel(e) {
+    e.preventDefault();
+    const rect = svgCanvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomFactor = 1.15;
+    let newZoom = zoom;
+    if (e.deltaY < 0) {
+        newZoom = Math.max(0.3, zoom / zoomFactor);
+    } else {
+        newZoom = Math.min(3.0, zoom * zoomFactor);
+    }
+
+    panX = panX + mouseX * (zoom - newZoom);
+    panY = panY + mouseY * (zoom - newZoom);
+    zoom = newZoom;
+
+    updateViewBox();
+}
+
 function getCanvasCoords(e) {
     const rect = svgCanvas.getBoundingClientRect();
+    const localX = e.clientX - rect.left;
+    const localY = e.clientY - rect.top;
     return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: panX + localX * zoom,
+        y: panY + localY * zoom
     };
 }
 
@@ -704,16 +821,25 @@ function applyInspectorChanges() {
     window.dispatchEvent(event);
 }
 
-function createNewTemplate() {
+async function createNewTemplate() {
     const id = `proc_custom_${Date.now()}`;
-    const nameRu = prompt('Введите название процесса на русском:', 'Пользовательский процесс');
-    if (!nameRu) return;
-    const nameKk = prompt('Введите название процесса на казахском:', 'Пайдаланушылық процесс') || nameRu;
+    const title = currentLanguage === 'ru' ? 'Создание нового процесса' : 'Жаңа процесті құру';
+    const label = currentLanguage === 'ru' ? 'Название процесса' : 'Процесс атауы';
+    const defaultValue = currentLanguage === 'ru' ? 'Пользовательский процесс' : 'Пайдаланушылық процесс';
+    const confirmBtnText = currentLanguage === 'ru' ? 'Добавить' : 'Қосу';
+
+    const name = await customPrompt({
+        title,
+        label,
+        defaultValue,
+        confirmBtnText
+    });
+    if (!name) return;
 
     const newProc = {
         id,
-        nameRu,
-        nameKk,
+        nameRu: name,
+        nameKk: name,
         version: "1.0",
         nodes: [
             { id: "node_start", type: "start", nameRu: "Старт", nameKk: "Бастау", x: 50, y: 150 },

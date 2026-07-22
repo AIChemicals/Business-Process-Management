@@ -130,7 +130,17 @@ const translations = {
         // Notification logs
         notifSLAWarning: "Внимание! Срок выполнения задачи '{task}' истекает через {time} ч.!",
         notifSLABreach: "Нарушение SLA! Задача '{task}' просрочена!",
-        notifNewTask: "Вам назначена новая задача: '{task}' в процессе '{process}'."
+        notifNewTask: "Вам назначена новая задача: '{task}' в процессе '{process}'.",
+
+        // Custom dialogs & unlocalized inputs
+        budgetLabel: "Бюджет (тенге)",
+        modalInstNamePlaceholder: "например, Закупка ноутбуков IT-отделу",
+        modalCellFunctionPlaceholder: "Введите ответственность роли в этом процессе...",
+        modalRowFuncPlaceholder: "Описание функции",
+        versionCommentLabel: "Комментарий к изменениям",
+        versionCommentPlaceholder: "Например: Обновление регламента юротдела",
+        modelerInspectorEmpty: "Выберите элемент на холсте для редактирования его параметров",
+        modelerGatewayCondPlaceholder: "например, budget > 1000000"
     },
     kk: {
         appName: "BPM Процестерді басқару жүйесі",
@@ -263,7 +273,17 @@ const translations = {
         // Notification logs
         notifSLAWarning: "Назар аударыңыз! '{task}' тапсырмасын орындау мерзімі {time} сағаттан кейін аяқталады!",
         notifSLABreach: "SLA бұзылуы! '{task}' тапсырмасының мерзімі өтті!",
-        notifNewTask: "Сізге жаңа тапсырма тағайындалды: '{process}' процесіндегі '{task}'."
+        notifNewTask: "Сізге жаңа тапсырма тағайындалды: '{process}' процесіндегі '{task}'.",
+
+        // Custom dialogs & unlocalized inputs
+        budgetLabel: "Бюджет (теңге)",
+        modalInstNamePlaceholder: "мысалы, IT-бөлімге ноутбуктер сатып алу",
+        modalCellFunctionPlaceholder: "Рөлдің осы процестегі жауапкершілігін енгізіңіз...",
+        modalRowFuncPlaceholder: "Функция сипаттамасы",
+        versionCommentLabel: "Өзгерістерге түсініктеме",
+        versionCommentPlaceholder: "Мысалы: Заң бөлімінің регламентін жаңарту",
+        modelerInspectorEmpty: "Параметрлерін өңдеу үшін кенептегі элементті таңдаңыз",
+        modelerGatewayCondPlaceholder: "мысалы, budget > 1000000"
     }
 };
 
