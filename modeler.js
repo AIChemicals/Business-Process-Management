@@ -1,5 +1,6 @@
-import db from './data.js?v=1.0.5';
-import { customPrompt } from './dialogs.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
+import { customPrompt } from './dialogs.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 let activeTemplate = null;
@@ -130,7 +131,7 @@ function populateProcessList() {
     const prevVal = processSelect.value || '';
     processSelect.innerHTML = '';
     db.templates.forEach(t => {
-        const name = currentLanguage === 'ru' ? t.nameRu : t.nameKk;
+        const name = pickName(t, currentLanguage);
         processSelect.innerHTML += `<option value="${t.id}">${name} (v${t.version})</option>`;
     });
     if (prevVal && db.templates.find(t => t.id === prevVal)) {
@@ -225,7 +226,7 @@ function drawNodeElement(node) {
         g.classList.add('selected');
     }
 
-    const labelText = currentLanguage === 'ru' ? node.nameRu : node.nameKk;
+    const labelText = pickName(node, currentLanguage);
 
     // Node Type Layouts
     if (node.type === 'start') {
@@ -396,7 +397,7 @@ function drawConnectionLine(conn) {
         const isNo = conn.to === fromNode.targetNo;
         
         if (isYes || isNo) {
-            const labelText = isYes ? (currentLanguage === 'ru' ? 'Да' : 'Иә') : (currentLanguage === 'ru' ? 'Нет' : 'Жоқ');
+            const labelText = isYes ? (i18n(currentLanguage, 'Да', 'Иә', 'Yes')) : (i18n(currentLanguage, 'Нет', 'Жоқ', 'No'));
             
             // Draw text tag near starting route segment
             const textX = start.x + (end.x > start.x ? 20 : -20);
@@ -729,7 +730,7 @@ function showInspector(node) {
     inspectorForm.style.display = 'block';
 
     inspectNodeId.value = node.id;
-    inspectNodeName.value = currentLanguage === 'ru' ? node.nameRu : node.nameKk;
+    inspectNodeName.value = pickName(node, currentLanguage);
     inspectNodeName.removeAttribute('readonly');
 
     populateInspectorOptions();
@@ -762,20 +763,21 @@ function populateInspectorOptions() {
     // Fill roles dropdown
     inspectNodeRole.innerHTML = '';
     db.roles.forEach(role => {
-        inspectNodeRole.innerHTML += `<option value="${role.id}">${currentLanguage === 'ru' ? role.nameRu : role.nameKk}</option>`;
+        inspectNodeRole.innerHTML += `<option value="${role.id}">${pickName(role, currentLanguage)}</option>`;
     });
 
     // Fill gateway choices dropdown (nodes target)
     if (selectedNode && selectedNode.type === 'gateway') {
-        inspectGatewayYes.innerHTML = `<option value="">-- выбрать шаг --</option>`;
-        inspectGatewayNo.innerHTML = `<option value="">-- выбрать шаг --</option>`;
+        const pickStep = i18n(currentLanguage, '-- выбрать шаг --', '-- қадамды таңдау --', '-- select a step --');
+        inspectGatewayYes.innerHTML = `<option value="">${pickStep}</option>`;
+        inspectGatewayNo.innerHTML = `<option value="">${pickStep}</option>`;
         
         // Populate all connections pointing out of this gateway node
         const outgoing = activeTemplate.connections.filter(c => c.from === selectedNode.id);
         outgoing.forEach(conn => {
             const target = activeTemplate.nodes.find(n => n.id === conn.to);
             if (target) {
-                const name = currentLanguage === 'ru' ? target.nameRu : target.nameKk;
+                const name = pickName(target, currentLanguage);
                 const opt = `<option value="${target.id}">${name}</option>`;
                 inspectGatewayYes.innerHTML += opt;
                 inspectGatewayNo.innerHTML += opt;
@@ -795,10 +797,12 @@ function applyInspectorChanges() {
     const newName = inspectNodeName.value.trim();
     if (newName === '') return;
 
-    if (currentLanguage === 'ru') {
-        selectedNode.nameRu = newName;
-    } else {
+    if (currentLanguage === 'kk') {
         selectedNode.nameKk = newName;
+    } else if (currentLanguage === 'en') {
+        selectedNode.nameEn = newName;
+    } else {
+        selectedNode.nameRu = newName;
     }
 
     if (selectedNode.type === 'task' || selectedNode.type === 'external') {
@@ -814,7 +818,7 @@ function applyInspectorChanges() {
     
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' ? 'Параметры элемента применены' : 'Элемент параметрлері өзгертілді',
+            message: i18n(currentLanguage, 'Параметры элемента применены', 'Элемент параметрлері өзгертілді', 'Element parameters applied'),
             type: 'info'
         }
     });
@@ -823,10 +827,10 @@ function applyInspectorChanges() {
 
 async function createNewTemplate() {
     const id = `proc_custom_${Date.now()}`;
-    const title = currentLanguage === 'ru' ? 'Создание нового процесса' : 'Жаңа процесті құру';
-    const label = currentLanguage === 'ru' ? 'Название процесса' : 'Процесс атауы';
-    const defaultValue = currentLanguage === 'ru' ? 'Пользовательский процесс' : 'Пайдаланушылық процесс';
-    const confirmBtnText = currentLanguage === 'ru' ? 'Добавить' : 'Қосу';
+    const title = i18n(currentLanguage, 'Создание нового процесса', 'Жаңа процесті құру', 'Create new process');
+    const label = i18n(currentLanguage, 'Название процесса', 'Процесс атауы', 'Process name');
+    const defaultValue = i18n(currentLanguage, 'Пользовательский процесс', 'Пайдаланушылық процесс', 'Custom process');
+    const confirmBtnText = i18n(currentLanguage, 'Добавить', 'Қосу', 'Add');
 
     const name = await customPrompt({
         title,
@@ -870,7 +874,7 @@ function saveActiveTemplate() {
                 db.matrix.push({
                     roleId: node.roleId,
                     processId: activeTemplate.id,
-                    function: `${currentLanguage === 'ru' ? 'Участник процесса' : 'Процеске қатысушы'} (BPM Modeler Autolink)`
+                    function: `${i18n(currentLanguage, 'Участник процесса', 'Процеске қатысушы', 'Process participant')} (BPM Modeler Autolink)`
                 });
             }
         }
@@ -881,7 +885,7 @@ function saveActiveTemplate() {
     // Dispatch save visual updates toast
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' ? 'Процесс сохранен и связан с ролевой матрицей!' : 'Процесс сақталды және рольдік матрицамен байланыстырылды!',
+            message: i18n(currentLanguage, 'Процесс сохранен и связан с ролевой матрицей!', 'Процесс сақталды және рольдік матрицамен байланыстырылды!', 'Process saved and linked to the role matrix!'),
             type: 'success'
         }
     });

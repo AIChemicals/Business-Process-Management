@@ -1,5 +1,6 @@
-import db from './data.js?v=1.0.5';
-import { customAlert } from './dialogs.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
+import { customAlert } from './dialogs.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 let activeUserRoleId = 'role_initiator';
@@ -74,7 +75,7 @@ function openLaunchModal() {
     // Populate templates dropdown
     modalInstTemplate.innerHTML = '';
     db.templates.forEach(t => {
-        const name = currentLanguage === 'ru' ? t.nameRu : t.nameKk;
+        const name = pickName(t, currentLanguage);
         modalInstTemplate.innerHTML += `<option value="${t.id}">${name}</option>`;
     });
 
@@ -91,7 +92,7 @@ function startNewProcessInstance() {
 
     let instName = modalInstName.value.trim();
     if (instName === '') {
-        const baseName = currentLanguage === 'ru' ? template.nameRu : template.nameKk;
+        const baseName = pickName(template, currentLanguage);
         instName = `${baseName} (№${Math.floor(Math.random() * 900) + 100})`;
     }
 
@@ -101,7 +102,7 @@ function startNewProcessInstance() {
     // Find starting task node connected from Start Event
     const startConn = template.connections.find(c => c.from === 'node_start');
     if (!startConn) {
-        customAlert(currentLanguage === 'ru' ? 'Ошибка: шаблон не содержит соединения от Старт ноды' : 'Қате: үлгіде Бастау торабынан байланыс жоқ');
+        customAlert(i18n(currentLanguage, 'Ошибка: шаблон не содержит соединения от Старт ноды', 'Қате: үлгіде Бастау торабынан байланыс жоқ', 'Error: template has no connection from the Start node'));
         return;
     }
 
@@ -135,7 +136,7 @@ function startNewProcessInstance() {
     // Trigger visual toast
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' ? `Запущен процесс '${instName}'` : `'${instName}' процесі іске қосылды`,
+            message: i18n(currentLanguage, `Запущен процесс '${instName}'`, `'${instName}' процесі іске қосылды`, `Process '${instName}' launched`),
             type: 'success'
         }
     });
@@ -171,9 +172,10 @@ function spawnTaskForNode(instance, node) {
     db.tasks.push(task);
 
     const processName = instance.name;
-    const alertMsg = currentLanguage === 'ru' 
-        ? `Вам назначена задача: '${node.nameRu}' в процессе '${processName}'`
-        : `Сізге тапсырма тағайындалды: '${processName}' процесіндегі '${node.nameKk}'`;
+    const alertMsg = i18n(currentLanguage,
+        `Вам назначена задача: '${node.nameRu}' в процессе '${processName}'`,
+        `Сізге тапсырма тағайындалды: '${processName}' процесіндегі '${node.nameKk}'`,
+        `You have been assigned a task: '${pickName(node, 'en')}' in process '${processName}'`);
     
     // Log to notifications database list
     logNotification(alertMsg, 'info', node.nameRu, task.id, task.roleId);
@@ -201,7 +203,7 @@ export function renderTasks() {
     if (activeTasks.length === 0) {
         activeTasksContainer.innerHTML = `
             <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 48px;">
-                <p data-localize="tasksNoTasks">${currentLanguage === 'ru' ? 'Нет активных задач для вашей текущей роли.' : 'Ағымдағы роліңіз үшін белсенді тапсырмалар жоқ.'}</p>
+                <p data-localize="tasksNoTasks">${i18n(currentLanguage, 'Нет активных задач для вашей текущей роли.', 'Ағымдағы роліңіз үшін белсенді тапсырмалар жоқ.', 'No active tasks for your current role.')}</p>
             </div>
         `;
     } else {
@@ -215,7 +217,7 @@ export function renderTasks() {
     if (completedTasks.length === 0) {
         completedTasksContainer.innerHTML = `
             <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 48px;">
-                <p>${currentLanguage === 'ru' ? 'Архив пуст.' : 'Мұрағат бос.'}</p>
+                <p>${i18n(currentLanguage, 'Архив пуст.', 'Мұрағат бос.', 'Archive is empty.')}</p>
             </div>
         `;
     } else {
@@ -229,7 +231,7 @@ export function renderTasks() {
 function createTaskCard(task, isArchive) {
     const instance = db.instances.find(i => i.id === task.instanceId);
     const processName = instance ? instance.name : 'Unknown Process';
-    const taskName = currentLanguage === 'ru' ? task.nameRu : task.nameKk;
+    const taskName = pickName(task, currentLanguage);
     
     // SLA calculation
     const now = new Date(db.systemTime);
@@ -241,17 +243,17 @@ function createTaskCard(task, isArchive) {
 
     if (isArchive) {
         slaClass = 'completed';
-        slaLabel = currentLanguage === 'ru' ? 'Завершено' : 'Аяқталды';
+        slaLabel = i18n(currentLanguage, 'Завершено', 'Аяқталды', 'Completed');
     } else {
         if (diffHours < 0) {
             slaClass = 'danger';
-            slaLabel = currentLanguage === 'ru' ? 'Просрочено' : 'Мерзімі өткен';
+            slaLabel = i18n(currentLanguage, 'Просрочено', 'Мерзімі өткен', 'Overdue');
         } else if (diffHours <= 6) {
             slaClass = 'warning';
-            slaLabel = currentLanguage === 'ru' ? 'Срок истекает' : 'Мерзімі таяу';
+            slaLabel = i18n(currentLanguage, 'Срок истекает', 'Мерзімі таяу', 'Due soon');
         } else {
             slaClass = 'active';
-            slaLabel = currentLanguage === 'ru' ? 'В работе' : 'Жұмыста';
+            slaLabel = i18n(currentLanguage, 'В работе', 'Жұмыста', 'In progress');
         }
     }
 
@@ -265,10 +267,10 @@ function createTaskCard(task, isArchive) {
         actionButtonsHtml = `
             <div style="display: flex; gap: 8px; margin-top: 12px;">
                 <button class="btn btn-primary btn-approve" data-id="${task.id}" style="padding: 6px 12px; font-size: 0.8rem;">
-                    ${currentLanguage === 'ru' ? 'Выполнить' : 'Орындау'}
+                    ${i18n(currentLanguage, 'Выполнить', 'Орындау', 'Complete')}
                 </button>
                 <button class="btn btn-danger btn-reject" data-id="${task.id}" style="padding: 6px 12px; font-size: 0.8rem;">
-                    ${currentLanguage === 'ru' ? 'Отклонить' : 'Қабылдамау'}
+                    ${i18n(currentLanguage, 'Отклонить', 'Қабылдамау', 'Reject')}
                 </button>
             </div>
         `;
@@ -277,8 +279,8 @@ function createTaskCard(task, isArchive) {
     // SLA Remaining output
     const hoursLeft = Math.max(0, Math.floor(diffHours));
     const slaRemainingText = isArchive 
-        ? `${currentLanguage === 'ru' ? 'Выполнено за' : 'Орындалу уақыты'}` 
-        : `${currentLanguage === 'ru' ? 'Осталось времени' : 'Қалған уақыт'}`;
+        ? `${i18n(currentLanguage, 'Выполнено за', 'Орындалу уақыты', 'Completed in')}` 
+        : `${i18n(currentLanguage, 'Осталось времени', 'Қалған уақыт', 'Time remaining')}`;
     const slaRemainingVal = isArchive
         ? `SLA OK`
         : `${hoursLeft} ч (hours)`;
@@ -298,18 +300,18 @@ function createTaskCard(task, isArchive) {
                 <span class="task-meta-val" style="color: ${slaClass === 'danger' ? 'var(--danger)' : 'inherit'}">${slaRemainingVal}</span>
             </div>
             <div class="task-meta-item">
-                <span>${currentLanguage === 'ru' ? 'Начало' : 'Басталды'}:</span>
+                <span>${i18n(currentLanguage, 'Начало', 'Басталды', 'Started')}:</span>
                 <span class="task-meta-val">${task.createdAt.replace('T', ' ').substring(0,16)}</span>
             </div>
             <div class="task-meta-item">
-                <span>${currentLanguage === 'ru' ? 'Дедлайн' : 'Шектеулі мерзім'}:</span>
+                <span>${i18n(currentLanguage, 'Дедлайн', 'Шектеулі мерзім', 'Deadline')}:</span>
                 <span class="task-meta-val">${task.dueDate.replace('T', ' ').substring(0,16)}</span>
             </div>
         </div>
 
         <!-- Document attachments -->
         <div class="task-docs-section">
-            <span class="task-comment-title">${currentLanguage === 'ru' ? 'Прикрепленные файлы' : 'Тіркелген файлдар'}</span>
+            <span class="task-comment-title">${i18n(currentLanguage, 'Прикрепленные файлы', 'Тіркелген файлдар', 'Attached files')}</span>
             <div class="task-docs-list">
                 ${task.documents.map(doc => `
                     <div class="task-doc-item">
@@ -320,16 +322,16 @@ function createTaskCard(task, isArchive) {
             </div>
             ${!isArchive ? `
                 <button class="btn btn-secondary btn-attach-doc" data-id="${task.id}" style="padding: 4px 8px; font-size: 0.7rem; width: fit-content; margin-top: 4px;">
-                    + ${currentLanguage === 'ru' ? 'Добавить документ' : 'Құжат қосу'}
+                    + ${i18n(currentLanguage, 'Добавить документ', 'Құжат қосу', 'Add document')}
                 </button>
             ` : ''}
         </div>
 
         <!-- Comments segment -->
         <div class="task-comments-section">
-            <span class="task-comment-title">${currentLanguage === 'ru' ? 'Обсуждение' : 'Талқылау'}</span>
+            <span class="task-comment-title">${i18n(currentLanguage, 'Обсуждение', 'Талқылау', 'Discussion')}</span>
             <div class="task-comments-list">
-                ${task.comments.length === 0 ? `<span style="color: var(--text-muted); font-style:italic;">${currentLanguage === 'ru' ? 'Комментариев нет' : 'Пікірлер жоқ'}</span>` : ''}
+                ${task.comments.length === 0 ? `<span style="color: var(--text-muted); font-style:italic;">${i18n(currentLanguage, 'Комментариев нет', 'Пікірлер жоқ', 'No comments')}</span>` : ''}
                 ${task.comments.map(c => `
                     <div class="task-comment-item">
                         <span class="task-comment-author">${c.user}:</span>
@@ -339,9 +341,9 @@ function createTaskCard(task, isArchive) {
             </div>
             ${!isArchive ? `
                 <div class="task-comment-input-box">
-                    <input type="text" class="form-control comment-input-el" placeholder="${currentLanguage === 'ru' ? 'Написать...' : 'Жазу...'}" style="padding: 6px 8px; font-size: 0.75rem;">
+                    <input type="text" class="form-control comment-input-el" placeholder="${i18n(currentLanguage, 'Написать...', 'Жазу...', 'Write...')}" style="padding: 6px 8px; font-size: 0.75rem;">
                     <button class="btn btn-secondary btn-send-comment" data-id="${task.id}" style="padding: 6px 10px;">
-                        ${currentLanguage === 'ru' ? 'ОК' : 'Жіберу'}
+                        ${i18n(currentLanguage, 'ОК', 'Жіберу', 'Send')}
                     </button>
                 </div>
             ` : ''}
@@ -408,9 +410,10 @@ function completeTask(taskId, resolution) {
                 
                 const event = new CustomEvent('show-toast', {
                     detail: {
-                        message: currentLanguage === 'ru' 
-                            ? `Процесс '${instance.name}' возвращен на доработку` 
-                            : `'${instance.name}' процесі қайта өңдеуге қайтарылды`,
+                        message: i18n(currentLanguage,
+                            `Процесс '${instance.name}' возвращен на доработку`,
+                            `'${instance.name}' процесі қайта өңдеуге қайтарылды`,
+                            `Process '${instance.name}' has been returned for revision`),
                         type: 'warning'
                     }
                 });
@@ -497,9 +500,10 @@ function completeInstance(instance) {
 
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' 
-                ? `Процесс '${instance.name}' успешно завершен!` 
-                : `'${instance.name}' процесі сәтті аяқталды!`,
+            message: i18n(currentLanguage,
+                `Процесс '${instance.name}' успешно завершен!`,
+                `'${instance.name}' процесі сәтті аяқталды!`,
+                `Process '${instance.name}' completed successfully!`),
             type: 'success'
         }
     });
@@ -512,7 +516,7 @@ function addComment(taskId, text) {
     if (!task) return;
 
     const userLabel = db.roles.find(r => r.id === activeUserRoleId);
-    const author = userLabel ? (currentLanguage === 'ru' ? userLabel.nameRu : userLabel.nameKk) : 'Исполнитель';
+    const author = userLabel ? (pickName(userLabel, currentLanguage)) : 'Исполнитель';
 
     task.comments.push({
         user: author,
@@ -542,7 +546,7 @@ function attachDocumentMock(taskId) {
 
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' ? `Файл '${docName}' прикреплен к задаче` : `'${docName}' файлы тапсырмаға тіркелді`,
+            message: i18n(currentLanguage, `Файл '${docName}' прикреплен к задаче`, `'${docName}' файлы тапсырмаға тіркелді`, `File '${docName}' attached to the task`),
             type: 'info'
         }
     });
@@ -595,9 +599,10 @@ function checkSLAThresholds() {
             
             if (isBreachingNow) {
                 stateChanged = true;
-                const msg = currentLanguage === 'ru'
-                    ? `Нарушение SLA! Срок выполнения задачи '${task.nameRu}' в инстансе истек!`
-                    : `SLA бұзылуы! '${task.nameKk}' тапсырмасының мерзімі өтті!`;
+                const msg = i18n(currentLanguage,
+                    `Нарушение SLA! Срок выполнения задачи '${task.nameRu}' в инстансе истек!`,
+                    `SLA бұзылуы! '${task.nameKk}' тапсырмасының мерзімі өтті!`,
+                    `SLA breach! The deadline for task '${pickName(task, 'en')}' has expired!`);
                 
                 triggerSlaAlertToast(msg, 'danger');
                 
@@ -611,9 +616,10 @@ function checkSLAThresholds() {
             
             if (isWarningNow) {
                 stateChanged = true;
-                const msg = currentLanguage === 'ru'
-                    ? `Внимание! До конца выполнения задачи '${task.nameRu}' осталось меньше 6 часов!`
-                    : `Назар аударыңыз! '${task.nameKk}' тапсырмасының бітуіне 6 сағаттан аз қалды!`;
+                const msg = i18n(currentLanguage,
+                    `Внимание! До конца выполнения задачи '${task.nameRu}' осталось меньше 6 часов!`,
+                    `Назар аударыңыз! '${task.nameKk}' тапсырмасының бітуіне 6 сағаттан аз қалды!`,
+                    `Attention! Less than 6 hours left to complete task '${pickName(task, 'en')}'!`);
 
                 triggerSlaAlertToast(msg, 'warning');
                 logNotification(msg, 'warning', task.nameRu);

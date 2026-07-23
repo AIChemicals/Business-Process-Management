@@ -1,18 +1,19 @@
-import db from './data.js?v=1.0.5';
-import translations from './locale.js?v=1.0.5';
-import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js?v=1.0.5';
-import { initModeler, updateLanguage as updateModelerLang } from './modeler.js?v=1.0.5';
-import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js?v=1.0.5';
-import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js?v=1.0.5';
-import { initAdmin, updateLanguage as updateAdminLang } from './admin.js?v=1.0.5';
-import { setDialogsLanguage } from './dialogs.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
+import translations from './locale.js?v=1.1.0';
+import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js?v=1.1.0';
+import { initModeler, updateLanguage as updateModelerLang } from './modeler.js?v=1.1.0';
+import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js?v=1.1.0';
+import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js?v=1.1.0';
+import { initAdmin, updateLanguage as updateAdminLang } from './admin.js?v=1.1.0';
+import { setDialogsLanguage } from './dialogs.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 let activeUserRoleId = 'role_initiator';
 let activeView = 'matrix';
 
 // DOM Elements cache
-let navItems, viewContainers, headerTitle, userRoleSelect, btnRu, btnKk, notifBell, notifDrawer, notifClearBtn, notifListContainer, toastContainer;
+let navItems, viewContainers, headerTitle, userRoleSelect, btnRu, btnKk, btnEn, themeToggleBtn, notifBell, notifDrawer, notifClearBtn, notifListContainer, toastContainer;
 
 window.addEventListener('DOMContentLoaded', () => {
     cacheElements();
@@ -41,7 +42,9 @@ function cacheElements() {
     userRoleSelect = document.getElementById('user-role-select');
     btnRu = document.getElementById('lang-ru');
     btnKk = document.getElementById('lang-kk');
-    
+    btnEn = document.getElementById('lang-en');
+    themeToggleBtn = document.getElementById('theme-toggle-btn');
+
     notifBell = document.getElementById('notif-bell-btn');
     notifDrawer = document.getElementById('notif-drawer');
     notifClearBtn = document.getElementById('notif-clear-btn');
@@ -66,6 +69,10 @@ function setupGlobalListeners() {
     // Language Toggle
     btnRu.addEventListener('click', () => changeLanguage('ru'));
     btnKk.addEventListener('click', () => changeLanguage('kk'));
+    btnEn.addEventListener('click', () => changeLanguage('en'));
+
+    // Theme Toggle (dark / light)
+    themeToggleBtn.addEventListener('click', toggleTheme);
 
     // Simulation User switch
     userRoleSelect.addEventListener('change', (e) => {
@@ -75,7 +82,7 @@ function setupGlobalListeners() {
         updateUserRole(activeUserRoleId);
         renderExternalPortal();
         
-        showToast(currentLanguage === 'ru' ? 'Вы переключили роль симулятора' : 'Сіз симулятор рөлін ауыстырдыңыз', 'info');
+        showToast(i18n(currentLanguage, 'Вы переключили роль симулятора', 'Сіз симулятор рөлін ауыстырдыңыз', 'You switched the simulator role'), 'info');
     });
 
     // Notifications toggle panel
@@ -128,11 +135,30 @@ function setupGlobalListeners() {
 function loadSession() {
     currentLanguage = localStorage.getItem('bpm_lang') || 'ru';
     activeUserRoleId = localStorage.getItem('bpm_active_role') || 'role_initiator';
-    
-    if (currentLanguage === 'kk') {
-        btnRu.classList.remove('active');
-        btnKk.classList.add('active');
+
+    setActiveLangButton(currentLanguage);
+    applyTheme(localStorage.getItem('bpm_theme') || 'dark');
+}
+
+function setActiveLangButton(lang) {
+    [btnRu, btnKk, btnEn].forEach(btn => btn && btn.classList.remove('active'));
+    const map = { ru: btnRu, kk: btnKk, en: btnEn };
+    if (map[lang]) map[lang].classList.add('active');
+}
+
+function applyTheme(theme) {
+    const isLight = theme === 'light';
+    document.body.classList.toggle('light-theme', isLight);
+    localStorage.setItem('bpm_theme', isLight ? 'light' : 'dark');
+    if (themeToggleBtn) {
+        themeToggleBtn.classList.toggle('active', isLight);
+        themeToggleBtn.title = isLight ? 'Светлая тема' : 'Тёмная тема';
     }
+}
+
+function toggleTheme() {
+    const next = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+    applyTheme(next);
 }
 
 function switchView(viewId) {
@@ -174,13 +200,7 @@ function changeLanguage(lang) {
     localStorage.setItem('bpm_lang', lang);
     setDialogsLanguage(lang);
 
-    if (lang === 'ru') {
-        btnRu.classList.add('active');
-        btnKk.classList.remove('active');
-    } else {
-        btnRu.classList.remove('active');
-        btnKk.classList.add('active');
-    }
+    setActiveLangButton(lang);
 
     // Translate DOM nodes and views
     translateDOM();
@@ -222,7 +242,7 @@ function populateUserRoleSelect() {
     userRoleSelect.innerHTML = '';
     
     db.roles.forEach(role => {
-        const name = currentLanguage === 'ru' ? role.nameRu : role.nameKk;
+        const name = pickName(role, currentLanguage);
         userRoleSelect.innerHTML += `<option value="${role.id}">${name}</option>`;
     });
 
@@ -297,7 +317,7 @@ function renderNotificationsList() {
     if (logs.length === 0) {
         notifListContainer.innerHTML = `
             <div style="padding: 32px; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
-                ${currentLanguage === 'ru' ? 'Уведомлений нет' : 'Хабарламалар жоқ'}
+                ${i18n(currentLanguage, 'Уведомлений нет', 'Хабарламалар жоқ', 'No notifications')}
             </div>
         `;
         return;
@@ -383,7 +403,7 @@ function renderExternalPortal() {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 24px;">
-                    ${currentLanguage === 'ru' ? 'Запросов во внешние организации нет' : 'Сыртқы ұйымдарға сұраныстар жоқ'}
+                    ${i18n(currentLanguage, 'Запросов во внешние организации нет', 'Сыртқы ұйымдарға сұраныстар жоқ', 'No requests to external organizations')}
                 </td>
             </tr>
         `;
@@ -399,25 +419,25 @@ function renderExternalPortal() {
         let actionBtn = '';
 
         if (task.status === 'active') {
-            statusBadge = `<span class="task-badge warning" data-localize="externalStatusSent">${currentLanguage === 'ru' ? 'Запрос отправлен' : 'Сұраныс жіберілді'}</span>`;
+            statusBadge = `<span class="task-badge warning" data-localize="externalStatusSent">${i18n(currentLanguage, 'Запрос отправлен', 'Сұраныс жіберілді', 'Request sent')}</span>`;
             
             // Allow simulating a response from vendor
             actionBtn = `
                 <button class="btn btn-primary btn-sim-external-respond" data-id="${task.id}" style="padding: 4px 8px; font-size: 0.75rem;">
-                    ${currentLanguage === 'ru' ? 'Симулировать ответ' : 'Жауапты симуляциялау'}
+                    ${i18n(currentLanguage, 'Симулировать ответ', 'Жауапты симуляциялау', 'Simulate response')}
                 </button>
             `;
         } else {
-            statusBadge = `<span class="task-badge completed" data-localize="externalStatusApproved">${currentLanguage === 'ru' ? 'Исполнено' : 'Орындалды'}</span>`;
-            actionBtn = `<span style="color:var(--text-muted); font-size:0.75rem;">${currentLanguage === 'ru' ? 'Ответ предоставлен' : 'Жауап берілді'}</span>`;
+            statusBadge = `<span class="task-badge completed" data-localize="externalStatusApproved">${i18n(currentLanguage, 'Исполнено', 'Орындалды', 'Completed')}</span>`;
+            actionBtn = `<span style="color:var(--text-muted); font-size:0.75rem;">${i18n(currentLanguage, 'Ответ предоставлен', 'Жауап берілді', 'Response provided')}</span>`;
         }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-weight: 600;">${processName}</td>
-            <td>${currentLanguage === 'ru' ? task.nameRu : task.nameKk}</td>
-            <td>${currentLanguage === 'ru' ? 'Инициатор блока' : 'Блок бастамашысы'}</td>
-            <td>${currentLanguage === 'ru' ? 'АО "КазПочта" / Поставщик' : '"ҚазПошта" АҚ / Жеткізуші'}</td>
+            <td>${pickName(task, currentLanguage)}</td>
+            <td>${i18n(currentLanguage, 'Инициатор блока', 'Блок бастамашысы', 'Unit initiator')}</td>
+            <td>${i18n(currentLanguage, 'АО "КазПочта" / Поставщик', '"ҚазПошта" АҚ / Жеткізуші', 'Kazpost JSC / Supplier')}</td>
             <td>${statusBadge}</td>
             <td>${actionBtn}</td>
         `;
@@ -471,9 +491,7 @@ function simulateExternalResponse(taskId) {
     renderExternalPortal();
     renderTasks();
     
-    showToast(currentLanguage === 'ru' 
-        ? 'Ответ от внешней организации получен! Процесс продвинулся дальше.' 
-        : 'Сыртқы ұйымнан жауап алынды! Процесс әрі қарай жылжыды.', 'success');
+    showToast(i18n(currentLanguage, 'Ответ от внешней организации получен! Процесс продвинулся дальше.', 'Сыртқы ұйымнан жауап алынды! Процесс әрі қарай жылжыды.', 'Response received from the external organization! The process moved forward.'), 'success');
 }
 
 function spawnTaskForExternalAdvance(instance, node) {

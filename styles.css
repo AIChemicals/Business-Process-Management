@@ -260,8 +260,33 @@ body {
 
 .lang-btn.active {
     background: var(--primary);
-    color: var(--text-main);
+    color: #fff;
 }
+
+/* Theme toggle button */
+.theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all var(--transition-speed);
+}
+
+.theme-toggle:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Show moon in dark theme, sun in light theme */
+.theme-toggle .theme-icon-sun { display: none; }
+.theme-toggle .theme-icon-moon { display: block; }
+body.light-theme .theme-toggle .theme-icon-sun { display: block; }
+body.light-theme .theme-toggle .theme-icon-moon { display: none; }
 
 .notification-bell {
     position: relative;
@@ -1209,3 +1234,59 @@ body {
         padding: 0 !important;
     }
 }
+
+/* ============================================================
+   LIGHT THEME
+   Toggled via body.light-theme (see app.js theme toggle).
+   Overrides CSS variables + surfaces that used hardcoded dark colors.
+   ============================================================ */
+body.light-theme {
+    --bg-dark: #eef2f7;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-hover: rgba(255, 255, 255, 1);
+    --border-color: rgba(100, 116, 139, 0.22);
+    --border-color-glow: rgba(99, 102, 241, 0.4);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --primary-glow: rgba(99, 102, 241, 0.1);
+    --success-glow: rgba(16, 185, 129, 0.12);
+    --warning-glow: rgba(245, 158, 11, 0.14);
+    --danger-glow: rgba(239, 68, 68, 0.1);
+}
+
+/* Surfaces that referenced hardcoded dark colors */
+body.light-theme .sidebar { background: rgba(255, 255, 255, 0.9); }
+body.light-theme .main-header { background: rgba(255, 255, 255, 0.6); }
+body.light-theme .sim-user-select,
+body.light-theme .notifications-drawer,
+body.light-theme .modal-content { background: #ffffff; }
+body.light-theme .modal-overlay { background: rgba(15, 23, 42, 0.35); }
+body.light-theme .modal-footer,
+body.light-theme .form-control,
+body.light-theme .matrix-table th,
+body.light-theme .task-comments-list { background: rgba(15, 23, 42, 0.03); }
+body.light-theme .modeler-toolbar,
+body.light-theme .modeler-zoom-controls { background: rgba(255, 255, 255, 0.95); }
+
+/* Subtle dark overlays replace the white hover overlays */
+body.light-theme .nav-item:hover,
+body.light-theme .notification-bell:hover,
+body.light-theme .theme-toggle:hover,
+body.light-theme .btn-secondary,
+body.light-theme .modeler-tool:hover,
+body.light-theme .modeler-zoom-controls button:hover,
+body.light-theme .notif-item:hover,
+body.light-theme .matrix-history-item:hover { background: rgba(15, 23, 42, 0.05); }
+body.light-theme .btn-secondary:hover { background: rgba(15, 23, 42, 0.1); }
+body.light-theme .sim-time-box,
+body.light-theme .admin-list-item,
+body.light-theme .task-doc-item,
+body.light-theme .matrix-history-item { background: rgba(15, 23, 42, 0.02); }
+
+/* Text that must stay light on solid colored backgrounds */
+body.light-theme .btn-primary,
+body.light-theme .btn-danger { color: #ffffff; }
+
+/* Keep the modeler canvas dark in both themes so BPMN nodes stay legible */
+body.light-theme .modeler-canvas-wrapper { background: #090d16; }
+body.light-theme .modeler-canvas text { fill: #e5e7eb; }

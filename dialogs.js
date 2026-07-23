@@ -1,4 +1,5 @@
-import translations from './locale.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import translations from './locale.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 
@@ -89,7 +90,7 @@ export function customConfirm(message, title = '') {
         }
 
         // Set content
-        titleEl.textContent = title || (currentLanguage === 'ru' ? 'Подтверждение' : 'Растау');
+        titleEl.textContent = title || (i18n(currentLanguage, 'Подтверждение', 'Растау', 'Confirmation'));
         msgEl.textContent = message;
         msgEl.style.display = 'block';
         inputsContainer.innerHTML = '';
@@ -97,7 +98,7 @@ export function customConfirm(message, title = '') {
         // Buttons
         cancelBtn.style.display = 'inline-flex';
         cancelBtn.textContent = getTranslation('cancel', 'Отмена');
-        confirmBtn.textContent = currentLanguage === 'ru' ? 'Да' : 'Иә';
+        confirmBtn.textContent = i18n(currentLanguage, 'Да', 'Иә', 'Yes');
         confirmBtn.className = 'btn btn-danger';
 
         // Show

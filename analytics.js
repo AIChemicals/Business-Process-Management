@@ -1,4 +1,5 @@
-import db from './data.js';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 
@@ -80,7 +81,7 @@ function calculateKPIs() {
     });
 
     const avgHours = countedInsts > 0 ? Math.round(totalHours / countedInsts) : 0;
-    kpiAvgTime.textContent = `${avgHours} ${currentLanguage === 'ru' ? 'ч' : 'сағ'}`;
+    kpiAvgTime.textContent = `${avgHours} ${i18n(currentLanguage, 'ч', 'сағ', 'h')}`;
 }
 
 function renderCharts() {
@@ -108,7 +109,7 @@ function renderProcessTimeChart() {
         }
 
         return {
-            name: currentLanguage === 'ru' ? temp.nameRu : temp.nameKk,
+            name: pickName(temp, currentLanguage),
             value: avg
         };
     });
@@ -168,7 +169,7 @@ function renderDeptLoadChart() {
         const count = db.tasks.filter(t => t.status === 'active' && rolesInDept.includes(t.roleId)).length;
 
         return {
-            name: currentLanguage === 'ru' ? dept.nameRu : dept.nameKk,
+            name: pickName(dept, currentLanguage),
             value: count
         };
     });
@@ -229,7 +230,7 @@ function renderBottlenecks() {
         bottleneckBody.innerHTML = `
             <tr>
                 <td colspan="5" style="text-align: center; color: var(--text-muted); font-style: italic;">
-                    ${currentLanguage === 'ru' ? 'Активных SLA инцидентов не зафиксировано' : 'SLA бұзылу оқиғалары тіркелген жоқ'}
+                    ${i18n(currentLanguage, 'Активных SLA инцидентов не зафиксировано', 'SLA бұзылу оқиғалары тіркелген жоқ', 'No active SLA incidents recorded')}
                 </td>
             </tr>
         `;
@@ -240,18 +241,18 @@ function renderBottlenecks() {
         const instance = db.instances.find(i => i.id === task.instanceId);
         const processName = instance ? instance.name : 'Unknown Process';
         const role = db.roles.find(r => r.id === task.roleId);
-        const roleName = role ? (currentLanguage === 'ru' ? role.nameRu : role.nameKk) : 'Исполнитель';
+        const roleName = role ? (pickName(role, currentLanguage)) : 'Исполнитель';
         
         const isOverdue = new Date(db.systemTime) > new Date(task.dueDate);
         const badgeClass = isOverdue ? 'danger' : 'warning';
         const badgeLabel = isOverdue 
-            ? (currentLanguage === 'ru' ? 'Просрочено' : 'Мерзімі өткен') 
-            : (currentLanguage === 'ru' ? 'Срок истекает' : 'Мерзімі таяу');
+            ? (i18n(currentLanguage, 'Просрочено', 'Мерзімі өткен', 'Overdue')) 
+            : (i18n(currentLanguage, 'Срок истекает', 'Мерзімі таяу', 'Due soon'));
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-weight: 600;">${processName}</td>
-            <td>${currentLanguage === 'ru' ? task.nameRu : task.nameKk}</td>
+            <td>${pickName(task, currentLanguage)}</td>
             <td style="color: var(--text-muted);">${roleName}</td>
             <td>${task.createdAt.replace('T', ' ').substring(0, 16)}</td>
             <td><span class="task-badge ${badgeClass}">${badgeLabel}</span></td>

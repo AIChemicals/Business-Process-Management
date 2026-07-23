@@ -1,18 +1,18 @@
 const DEFAULT_DEPARTMENTS = [
-    { id: "dept_initiator", nameRu: "Блок инициации", nameKk: "Бастамашылық блок" },
-    { id: "dept_legal", nameRu: "Юридический департамент", nameKk: "Заң департаменті" },
-    { id: "dept_finance", nameRu: "Финансовый департамент", nameKk: "Қаржы департаменті" },
-    { id: "dept_admin", nameRu: "Административный блок", nameKk: "Әкімшілік блок" },
-    { id: "dept_external", nameRu: "Внешние контрагенты", nameKk: "Сыртқы контрагенттер" }
+    { id: "dept_initiator", nameRu: "Блок инициации", nameKk: "Бастамашылық блок", nameEn: "Initiation Unit" },
+    { id: "dept_legal", nameRu: "Юридический департамент", nameKk: "Заң департаменті", nameEn: "Legal Department" },
+    { id: "dept_finance", nameRu: "Финансовый департамент", nameKk: "Қаржы департаменті", nameEn: "Finance Department" },
+    { id: "dept_admin", nameRu: "Административный блок", nameKk: "Әкімшілік блок", nameEn: "Administrative Unit" },
+    { id: "dept_external", nameRu: "Внешние контрагенты", nameKk: "Сыртқы контрагенттер", nameEn: "External Counterparties" }
 ];
 
 const DEFAULT_ROLES = [
-    { id: "role_initiator", nameRu: "Инициатор процесса", nameKk: "Процесті бастамашысы", deptId: "dept_initiator" },
-    { id: "role_dept_head", nameRu: "Руководитель отдела", nameKk: "Бөлім меңгерушісі", deptId: "dept_initiator" },
-    { id: "role_legal", nameRu: "Юрист", nameKk: "Заңгер", deptId: "dept_legal" },
-    { id: "role_finance", nameRu: "Финансовый контроллер", nameKk: "Қаржы бақылаушысы", deptId: "dept_finance" },
-    { id: "role_director", nameRu: "Директор блока", nameKk: "Блок директоры", deptId: "dept_admin" },
-    { id: "role_external_vendor", nameRu: "Внешний поставщик", nameKk: "Сыртқы өнім беруші", deptId: "dept_external" }
+    { id: "role_initiator", nameRu: "Инициатор процесса", nameKk: "Процесті бастамашысы", nameEn: "Process Initiator", deptId: "dept_initiator" },
+    { id: "role_dept_head", nameRu: "Руководитель отдела", nameKk: "Бөлім меңгерушісі", nameEn: "Department Head", deptId: "dept_initiator" },
+    { id: "role_legal", nameRu: "Юрист", nameKk: "Заңгер", nameEn: "Legal Counsel", deptId: "dept_legal" },
+    { id: "role_finance", nameRu: "Финансовый контроллер", nameKk: "Қаржы бақылаушысы", nameEn: "Financial Controller", deptId: "dept_finance" },
+    { id: "role_director", nameRu: "Директор блока", nameKk: "Блок директоры", nameEn: "Unit Director", deptId: "dept_admin" },
+    { id: "role_external_vendor", nameRu: "Внешний поставщик", nameKk: "Сыртқы өнім беруші", nameEn: "External Supplier", deptId: "dept_external" }
 ];
 
 const DEFAULT_PROCESS_TEMPLATES = [
@@ -20,14 +20,15 @@ const DEFAULT_PROCESS_TEMPLATES = [
         id: "proc_contract",
         nameRu: "Согласование коммерческих договоров",
         nameKk: "Коммерциялық шарттарды келісу",
+        nameEn: "Commercial Contract Approval",
         version: "1.0",
         nodes: [
-            { id: "node_start", type: "start", nameRu: "Старт процесса", nameKk: "Процестің басталуы", x: 50, y: 150 },
-            { id: "node_prepare", type: "task", nameRu: "Подготовка проекта договора", nameKk: "Шарт жобасын дайындау", roleId: "role_initiator", sla: 24, x: 150, y: 125 },
-            { id: "node_legal_review", type: "task", nameRu: "Правовая экспертиза договора", nameKk: "Шартқа құқықтық сараптама", roleId: "role_legal", sla: 48, x: 300, y: 125 },
-            { id: "node_finance_review", type: "task", nameRu: "Бюджетный контроль договора", nameKk: "Шартты бюджеттік бақылау", roleId: "role_finance", sla: 24, x: 450, y: 125 },
-            { id: "node_sign", type: "task", nameRu: "Подписание договора директором", nameKk: "Директордың шартқа қол қоюы", roleId: "role_director", sla: 12, x: 600, y: 125 },
-            { id: "node_end", type: "end", nameRu: "Договор согласован и подписан", nameKk: "Шарт келісілді және қол қойылды", x: 750, y: 150 }
+            { id: "node_start", type: "start", nameRu: "Старт процесса", nameKk: "Процестің басталуы", nameEn: "Process Start", x: 50, y: 150 },
+            { id: "node_prepare", type: "task", nameRu: "Подготовка проекта договора", nameKk: "Шарт жобасын дайындау", nameEn: "Draft Contract Preparation", roleId: "role_initiator", sla: 24, x: 150, y: 125 },
+            { id: "node_legal_review", type: "task", nameRu: "Правовая экспертиза договора", nameKk: "Шартқа құқықтық сараптама", nameEn: "Legal Review of Contract", roleId: "role_legal", sla: 48, x: 300, y: 125 },
+            { id: "node_finance_review", type: "task", nameRu: "Бюджетный контроль договора", nameKk: "Шартты бюджеттік бақылау", nameEn: "Contract Budget Control", roleId: "role_finance", sla: 24, x: 450, y: 125 },
+            { id: "node_sign", type: "task", nameRu: "Подписание договора директором", nameKk: "Директордың шартқа қол қоюы", nameEn: "Contract Signing by Director", roleId: "role_director", sla: 12, x: 600, y: 125 },
+            { id: "node_end", type: "end", nameRu: "Договор согласован и подписан", nameKk: "Шарт келісілді және қол қойылды", nameEn: "Contract Approved and Signed", x: 750, y: 150 }
         ],
         connections: [
             { from: "node_start", to: "node_prepare" },
@@ -41,17 +42,18 @@ const DEFAULT_PROCESS_TEMPLATES = [
         id: "proc_procurement",
         nameRu: "Закупка оборудования и ТМЦ",
         nameKk: "Жабдықтарды және ТМҚ сатып алу",
+        nameEn: "Equipment and Inventory Procurement",
         version: "1.2",
         nodes: [
-            { id: "node_start", type: "start", nameRu: "Старт закупки", nameKk: "Сатып алуды бастау", x: 50, y: 150 },
-            { id: "node_req", type: "task", nameRu: "Формирование заявки на закупку", nameKk: "Сатып алуға өтінім жасау", roleId: "role_initiator", sla: 24, x: 140, y: 125 },
-            { id: "node_head_approve", type: "task", nameRu: "Одобрение заявки руководителем", nameKk: "Өтінімді басшының мақұлдауы", roleId: "role_dept_head", sla: 12, x: 280, y: 125 },
-            { id: "node_gateway", type: "gateway", nameRu: "Бюджет > 5 млн тенге?", nameKk: "Бюджет > 5 млн теңге?", condition: "budget > 5000000", targetYes: "node_director_approve", targetNo: "node_finance_approve", x: 420, y: 130 },
-            { id: "node_director_approve", type: "task", nameRu: "Утверждение директором", nameKk: "Директордың бекітуі", roleId: "role_director", sla: 24, x: 530, y: 50 },
-            { id: "node_finance_approve", type: "task", nameRu: "Выделение средств финансистом", nameKk: "Қаржыгердің қаражат бөлуі", roleId: "role_finance", sla: 24, x: 530, y: 200 },
-            { id: "node_external_order", type: "external", nameRu: "Размещение заказа у поставщика", nameKk: "Тапсырысты жеткізушіге жіберу", roleId: "role_external_vendor", sla: 72, x: 680, y: 125 },
-            { id: "node_accept", type: "task", nameRu: "Приемка и учет оборудования", nameKk: "Жабдықты қабылдау және есепке алу", roleId: "role_initiator", sla: 48, x: 820, y: 125 },
-            { id: "node_end", type: "end", nameRu: "Закупка успешно завершена", nameKk: "Сатып алу сәтті аяқталды", x: 960, y: 150 }
+            { id: "node_start", type: "start", nameRu: "Старт закупки", nameKk: "Сатып алуды бастау", nameEn: "Procurement Start", x: 50, y: 150 },
+            { id: "node_req", type: "task", nameRu: "Формирование заявки на закупку", nameKk: "Сатып алуға өтінім жасау", nameEn: "Procurement Request Creation", roleId: "role_initiator", sla: 24, x: 140, y: 125 },
+            { id: "node_head_approve", type: "task", nameRu: "Одобрение заявки руководителем", nameKk: "Өтінімді басшының мақұлдауы", nameEn: "Request Approval by Manager", roleId: "role_dept_head", sla: 12, x: 280, y: 125 },
+            { id: "node_gateway", type: "gateway", nameRu: "Бюджет > 5 млн тенге?", nameKk: "Бюджет > 5 млн теңге?", nameEn: "Budget > 5M KZT?", condition: "budget > 5000000", targetYes: "node_director_approve", targetNo: "node_finance_approve", x: 420, y: 130 },
+            { id: "node_director_approve", type: "task", nameRu: "Утверждение директором", nameKk: "Директордың бекітуі", nameEn: "Director Approval", roleId: "role_director", sla: 24, x: 530, y: 50 },
+            { id: "node_finance_approve", type: "task", nameRu: "Выделение средств финансистом", nameKk: "Қаржыгердің қаражат бөлуі", nameEn: "Funds Allocation by Finance", roleId: "role_finance", sla: 24, x: 530, y: 200 },
+            { id: "node_external_order", type: "external", nameRu: "Размещение заказа у поставщика", nameKk: "Тапсырысты жеткізушіге жіберу", nameEn: "Order Placement with Supplier", roleId: "role_external_vendor", sla: 72, x: 680, y: 125 },
+            { id: "node_accept", type: "task", nameRu: "Приемка и учет оборудования", nameKk: "Жабдықты қабылдау және есепке алу", nameEn: "Equipment Acceptance and Registration", roleId: "role_initiator", sla: 48, x: 820, y: 125 },
+            { id: "node_end", type: "end", nameRu: "Закупка успешно завершена", nameKk: "Сатып алу сәтті аяқталды", nameEn: "Procurement Successfully Completed", x: 960, y: 150 }
         ],
         connections: [
             { from: "node_start", to: "node_req" },
@@ -140,6 +142,7 @@ const DEFAULT_TASKS = [
         nodeId: "node_legal_review",
         nameRu: "Правовая экспертиза договора",
         nameKk: "Шартқа құқықтық сараптама",
+        nameEn: "Legal Review of Contract",
         roleId: "role_legal",
         status: "active",
         createdAt: "2026-07-12T09:30:00Z",
@@ -157,6 +160,7 @@ const DEFAULT_TASKS = [
         nodeId: "node_director_approve",
         nameRu: "Утверждение закупки (бюджет > 5 млн)",
         nameKk: "Сатып алуды бекіту (бюджет > 5 млн)",
+        nameEn: "Procurement Approval (budget > 5M)",
         roleId: "role_director",
         status: "active",
         createdAt: "2026-07-12T14:00:00Z",

@@ -284,7 +284,164 @@ const translations = {
         versionCommentPlaceholder: "Мысалы: Заң бөлімінің регламентін жаңарту",
         modelerInspectorEmpty: "Параметрлерін өңдеу үшін кенептегі элементті таңдаңыз",
         modelerGatewayCondPlaceholder: "мысалы, budget > 1000000"
+    },
+    en: {
+        appName: "BPM Process Management System",
+        subTitle: "Digitalization, automation and role matrix",
+        // Navigation
+        navMatrix: "Role Matrix",
+        navModeler: "Process Modeler",
+        navTasks: "My Tasks",
+        navExternal: "External Portal",
+        navAnalytics: "Analytics & SLA",
+        navAdmin: "Administration",
+
+        // Common
+        add: "Add",
+        edit: "Edit",
+        delete: "Delete",
+        save: "Save",
+        cancel: "Cancel",
+        apply: "Apply",
+        search: "Search...",
+        filter: "Filter",
+        all: "All",
+        status: "Status",
+        actions: "Actions",
+        role: "Role",
+        function: "Function",
+        process: "Process",
+        department: "Department",
+        deadline: "Deadline",
+        created: "Created",
+        completed: "Completed",
+        version: "Version",
+        rollback: "Roll back",
+        exportExcel: "Export Excel",
+        exportPDF: "Export PDF",
+        responsible: "Responsible",
+        comments: "Comments",
+        documents: "Documents",
+        attachFile: "Attach file",
+        send: "Send",
+        notification: "Notification",
+        userRole: "Current role (Simulation):",
+
+        // Matrix View
+        matrixTitle: "Unified role-functional matrix",
+        matrixDesc: "The link between employee roles, their functions and the processes they take part in.",
+        matrixHeaderRole: "Role / Position",
+        matrixHeaderDept: "Department",
+        matrixHeaderFunc: "Function in process",
+        matrixAddRow: "Add role to matrix",
+        matrixSelectProcess: "Select a process",
+        matrixHistory: "Matrix version history",
+        matrixHistoryTitle: "Matrix change history",
+        matrixCurrentVersion: "Current version",
+
+        // Modeler View
+        modelerTitle: "Visual business process modeling",
+        modelerDesc: "Design and configure process steps in BPMN notation.",
+        modelerTemplates: "Process templates",
+        modelerNodeStart: "Start",
+        modelerNodeTask: "Task",
+        modelerNodeGateway: "Gateway (Condition)",
+        modelerNodeExternal: "External step",
+        modelerNodeEnd: "End",
+        modelerInspector: "Element properties",
+        modelerNodeName: "Step name",
+        modelerNodeAssignee: "Assignee (Role)",
+        modelerNodeSLA: "Duration (hours)",
+        modelerGatewayCond: "Transition condition",
+        modelerGatewayTarget: "Step on approval",
+        modelerGatewayTargetNo: "Step on rejection",
+        modelerSaveTemplate: "Save template",
+        modelerRunSim: "Run simulation",
+
+        // Tasks View
+        tasksTitle: "Cross-functional task registry",
+        tasksDesc: "Task management, hand-off between departments and SLA control.",
+        tasksActive: "Active tasks",
+        tasksDone: "Task archive",
+        tasksLaunchBtn: "New process",
+        tasksLaunchTitle: "Launch a new process",
+        tasksLaunchSelect: "Select a process template",
+        tasksLaunchName: "Instance name (e.g. Contract No.12)",
+        tasksLaunchStart: "Launch",
+        tasksTaskName: "Task",
+        tasksTaskProcess: "Process",
+        tasksTaskSLA: "Time remaining",
+        tasksStatusActive: "In progress",
+        tasksStatusCompleted: "Completed",
+        tasksStatusOverdue: "Overdue",
+        tasksStatusWarning: "Due soon",
+        tasksActionApprove: "Approve / Complete",
+        tasksActionReject: "Reject",
+        tasksNoTasks: "No active tasks for your current role.",
+
+        // External Portal
+        externalTitle: "Interaction with third-party organizations",
+        externalDesc: "Digitalized data exchange with external counterparties and agencies.",
+        externalTableTitle: "Requests to external organizations",
+        externalSender: "Sender",
+        externalReceiver: "External organization",
+        externalStatusSent: "Request sent",
+        externalStatusReceived: "Response received",
+        externalStatusApproved: "Completed",
+        externalStatusRejected: "Rejected",
+        externalSimulateResponse: "Simulate a response from the external organization",
+
+        // Analytics
+        analyticsTitle: "Control, monitoring and analytics",
+        analyticsDesc: "Real-time monitoring of process execution, SLA and workload analytics.",
+        analyticsKPIActive: "Active instances",
+        analyticsKPIDone: "Completed instances",
+        analyticsKPISLA: "SLA compliance",
+        analyticsKPIAvgTime: "Avg. cycle time",
+        analyticsChartPerformance: "Execution time by process (hours)",
+        analyticsChartLoad: "Workload by department (tasks in progress)",
+        analyticsChartSLA: "Process execution status",
+        analyticsBottlenecks: "Bottlenecks and SLA incidents",
+
+        // Administration
+        adminTitle: "Administration panel",
+        adminDesc: "Configure reference data, manage users and simulation parameters.",
+        adminSectionDepts: "Departments catalog",
+        adminSectionRoles: "Roles catalog",
+        adminSectionSim: "Simulator control",
+        adminSimSpeed: "Simulator time speed (x1000)",
+        adminSimReset: "Reset data to defaults",
+        adminSimTime: "System simulation time",
+
+        // Notification logs
+        notifSLAWarning: "Attention! The deadline for task '{task}' expires in {time} h!",
+        notifSLABreach: "SLA breach! Task '{task}' is overdue!",
+        notifNewTask: "You have been assigned a new task: '{task}' in process '{process}'.",
+
+        // Custom dialogs & unlocalized inputs
+        budgetLabel: "Budget (KZT)",
+        modalInstNamePlaceholder: "e.g. Laptop purchase for IT department",
+        modalCellFunctionPlaceholder: "Enter the role's responsibility in this process...",
+        modalRowFuncPlaceholder: "Function description",
+        versionCommentLabel: "Change comment",
+        versionCommentPlaceholder: "e.g. Legal department regulation update",
+        modelerInspectorEmpty: "Select an element on the canvas to edit its parameters",
+        modelerGatewayCondPlaceholder: "e.g. budget > 1000000"
     }
 };
+
+// Pick the localized name field (nameRu / nameKk / nameEn) for an object.
+export function pickName(obj, lang) {
+    if (!obj) return '';
+    const key = 'name' + lang.charAt(0).toUpperCase() + lang.slice(1);
+    return obj[key] || obj.nameRu || obj.nameEn || obj.nameKk || '';
+}
+
+// Inline string helper: tr(lang, russian, kazakh, english).
+export function tr(lang, ru, kk, en) {
+    if (lang === 'kk') return kk;
+    if (lang === 'en') return (en !== undefined ? en : ru);
+    return ru;
+}
 
 export default translations;

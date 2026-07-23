@@ -1,5 +1,6 @@
-import db from './data.js?v=1.0.5';
-import { customConfirm } from './dialogs.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
+import { customConfirm } from './dialogs.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 let activeProcessFilter = 'all';
@@ -97,9 +98,9 @@ function setupListeners() {
 function populateFilters() {
     // Process filter
     const prevVal = processFilterSelect.value || 'all';
-    processFilterSelect.innerHTML = `<option value="all">${currentLanguage === 'ru' ? 'Все процессы' : 'Барлық процестер'}</option>`;
+    processFilterSelect.innerHTML = `<option value="all">${i18n(currentLanguage, 'Все процессы', 'Барлық процестер', 'All processes')}</option>`;
     db.templates.forEach(proc => {
-        const name = currentLanguage === 'ru' ? proc.nameRu : proc.nameKk;
+        const name = pickName(proc, currentLanguage);
         processFilterSelect.innerHTML += `<option value="${proc.id}">${name}</option>`;
     });
     processFilterSelect.value = prevVal;
@@ -116,11 +117,11 @@ export function renderMatrix() {
     // Render Headers
     const thead = tableEl.querySelector('thead tr');
     thead.innerHTML = `
-        <th>${currentLanguage === 'ru' ? 'Роль / Должность' : 'Роль / Лауазым'}</th>
-        <th>${currentLanguage === 'ru' ? 'Отдел' : 'Бөлім'}</th>
+        <th>${i18n(currentLanguage, 'Роль / Должность', 'Роль / Лауазым', 'Role / Position')}</th>
+        <th>${i18n(currentLanguage, 'Отдел', 'Бөлім', 'Department')}</th>
     `;
     processes.forEach(proc => {
-        const name = currentLanguage === 'ru' ? proc.nameRu : proc.nameKk;
+        const name = pickName(proc, currentLanguage);
         thead.innerHTML += `<th style="min-width: 180px;">${name}</th>`;
     });
 
@@ -129,8 +130,8 @@ export function renderMatrix() {
     
     db.roles.forEach(role => {
         const dept = db.departments.find(d => d.id === role.deptId);
-        const roleName = currentLanguage === 'ru' ? role.nameRu : role.nameKk;
-        const deptName = dept ? (currentLanguage === 'ru' ? dept.nameRu : dept.nameKk) : '';
+        const roleName = pickName(role, currentLanguage);
+        const deptName = dept ? (pickName(dept, currentLanguage)) : '';
 
         // Search Filter
         if (searchTerm && !roleName.toLowerCase().includes(searchTerm) && !deptName.toLowerCase().includes(searchTerm)) {
@@ -142,7 +143,7 @@ export function renderMatrix() {
             <td style="font-weight: 600;">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <span>${roleName}</span>
-                    <button class="role-delete-btn" data-id="${role.id}" title="${currentLanguage === 'ru' ? 'Удалить роль' : 'Рольді жою'}" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 2px 6px; transition: opacity 0.2s; opacity: 0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">&times;</button>
+                    <button class="role-delete-btn" data-id="${role.id}" title="${i18n(currentLanguage, 'Удалить роль', 'Рольді жою', 'Delete role')}" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 2px 6px; transition: opacity 0.2s; opacity: 0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">&times;</button>
                 </div>
             </td>
             <td style="color: var(--text-muted);">${deptName}</td>
@@ -162,9 +163,9 @@ export function renderMatrix() {
             const td = document.createElement('td');
             
             if (mapping && mapping.function.trim() !== '') {
-                td.innerHTML = `<span class="matrix-cell-func" title="${currentLanguage === 'ru' ? 'Кликните для изменения' : 'Өзгерту үшін басыңыз'}">${mapping.function}</span>`;
+                td.innerHTML = `<span class="matrix-cell-func" title="${i18n(currentLanguage, 'Кликните для изменения', 'Өзгерту үшін басыңыз', 'Click to edit')}">${mapping.function}</span>`;
             } else {
-                td.innerHTML = `<span class="matrix-cell-empty">+ ${currentLanguage === 'ru' ? 'Добавить' : 'Қосу'}</span>`;
+                td.innerHTML = `<span class="matrix-cell-empty">+ ${i18n(currentLanguage, 'Добавить', 'Қосу', 'Add')}</span>`;
             }
 
             // Cell click handler
@@ -180,9 +181,10 @@ async function deleteRoleFromMatrix(roleId) {
     const role = db.roles.find(r => r.id === roleId);
     if (!role) return;
 
-    const confirmMsg = currentLanguage === 'ru' 
-        ? `Вы действительно хотите удалить роль "${role.nameRu}"? Это удалит все её связи в ролевой матрице.`
-        : `"${role.nameKk}" рөлін жойғыңыз келе ме? Бұл оның роледік матрицадағы барлық байланыстарын жояды.`;
+    const confirmMsg = i18n(currentLanguage,
+        `Вы действительно хотите удалить роль "${role.nameRu}"? Это удалит все её связи в ролевой матрице.`,
+        `"${role.nameKk}" рөлін жойғыңыз келе ме? Бұл оның роледік матрицадағы барлық байланыстарын жояды.`,
+        `Do you really want to delete the role "${pickName(role, 'en')}"? This will remove all its links in the role matrix.`);
 
     if (await customConfirm(confirmMsg)) {
         // Remove from db.roles
@@ -199,7 +201,7 @@ async function deleteRoleFromMatrix(roleId) {
         // Notify with toast
         const event = new CustomEvent('show-toast', {
             detail: {
-                message: currentLanguage === 'ru' ? 'Роль успешно удалена!' : 'Рөл сәтті жойылды!',
+                message: i18n(currentLanguage, 'Роль успешно удалена!', 'Рөл сәтті жойылды!', 'Role deleted successfully!'),
                 type: 'warning'
             }
         });
@@ -214,8 +216,8 @@ function openEditCellModal(roleId, processId, currentFunc) {
     const proc = db.templates.find(p => p.id === processId);
     if (!role || !proc) return;
 
-    modalCellRoleName.value = currentLanguage === 'ru' ? role.nameRu : role.nameKk;
-    modalCellProcName.value = currentLanguage === 'ru' ? proc.nameRu : proc.nameKk;
+    modalCellRoleName.value = pickName(role, currentLanguage);
+    modalCellProcName.value = pickName(proc, currentLanguage);
     modalCellFuncText.value = currentFunc;
     
     modalCellSave.dataset.roleId = roleId;
@@ -254,13 +256,13 @@ function openAddRowModal() {
     // Populate role select
     modalRowRole.innerHTML = '';
     db.roles.forEach(role => {
-        modalRowRole.innerHTML += `<option value="${role.id}">${currentLanguage === 'ru' ? role.nameRu : role.nameKk}</option>`;
+        modalRowRole.innerHTML += `<option value="${role.id}">${pickName(role, currentLanguage)}</option>`;
     });
 
     // Populate process select
     modalRowProc.innerHTML = '';
     db.templates.forEach(proc => {
-        modalRowProc.innerHTML += `<option value="${proc.id}">${currentLanguage === 'ru' ? proc.nameRu : proc.nameKk}</option>`;
+        modalRowProc.innerHTML += `<option value="${proc.id}">${pickName(proc, currentLanguage)}</option>`;
     });
 
     modalRowFunc.value = '';
@@ -296,7 +298,7 @@ function promptVersionCommit() {
 }
 
 function commitMatrixVersion() {
-    const comment = modalVerCommentText.value.trim() || (currentLanguage === 'ru' ? 'Ручное обновление ролей' : 'Рөлдерді қолмен жаңарту');
+    const comment = modalVerCommentText.value.trim() || (i18n(currentLanguage, 'Ручное обновление ролей', 'Рөлдерді қолмен жаңарту', 'Manual role update'));
     
     // Determine next version code
     const lastVersion = db.matrixVersions[db.matrixVersions.length - 1];
@@ -323,7 +325,7 @@ function commitMatrixVersion() {
     // Dispatch toast notification
     const event = new CustomEvent('show-toast', {
         detail: {
-            message: currentLanguage === 'ru' ? `Матрица сохранена! Версия ${nextVer}` : `Матрица сақталды! Нұсқа ${nextVer}`,
+            message: i18n(currentLanguage, `Матрица сохранена! Версия ${nextVer}`, `Матрица сақталды! Нұсқа ${nextVer}`, `Matrix saved! Version ${nextVer}`),
             type: 'success'
         }
     });
@@ -354,14 +356,14 @@ function renderHistory() {
             rollbackBtn.style.padding = '4px 8px';
             rollbackBtn.style.fontSize = '0.7rem';
             rollbackBtn.style.marginTop = '4px';
-            rollbackBtn.innerText = currentLanguage === 'ru' ? 'Откатить' : 'Қалпына келтіру';
+            rollbackBtn.innerText = i18n(currentLanguage, 'Откатить', 'Қалпына келтіру', 'Roll back');
             rollbackBtn.addEventListener('click', () => rollbackTo(ver.version));
             item.appendChild(rollbackBtn);
         } else {
             const currentBadge = document.createElement('span');
             currentBadge.className = 'task-badge active';
             currentBadge.style.fontSize = '0.65rem';
-            currentBadge.innerText = currentLanguage === 'ru' ? 'Текущая версия' : 'Ағымдағы нұсқа';
+            currentBadge.innerText = i18n(currentLanguage, 'Текущая версия', 'Ағымдағы нұсқа', 'Current version');
             item.appendChild(currentBadge);
         }
 
@@ -373,7 +375,7 @@ async function rollbackTo(versionId) {
     const target = db.matrixVersions.find(v => v.version === versionId);
     if (!target) return;
 
-    if (await customConfirm(currentLanguage === 'ru' ? `Вы действительно хотите откатить матрицу к версии v${versionId}?` : `Матрицаны шынымен v${versionId} нұсқасына қайтарғыңыз келе ме?`)) {
+    if (await customConfirm(i18n(currentLanguage, `Вы действительно хотите откатить матрицу к версии v${versionId}?`, `Матрицаны шынымен v${versionId} нұсқасына қайтарғыңыз келе ме?`, `Do you really want to roll the matrix back to version v${versionId}?`))) {
         db.matrix = JSON.parse(JSON.stringify(target.matrix));
         
         // Add a new log recording the rollback event
@@ -383,7 +385,7 @@ async function rollbackTo(versionId) {
         db.matrixVersions.push({
             version: nextVer,
             date,
-            comment: currentLanguage === 'ru' ? `Откат к версии v${versionId}` : `v${versionId} нұсқасына қалпына келтіру`,
+            comment: i18n(currentLanguage, `Откат к версии v${versionId}`, `v${versionId} нұсқасына қалпына келтіру`, `Rollback to version v${versionId}`),
             matrix: JSON.parse(JSON.stringify(db.matrix))
         });
 
@@ -393,7 +395,7 @@ async function rollbackTo(versionId) {
 
         const event = new CustomEvent('show-toast', {
             detail: {
-                message: currentLanguage === 'ru' ? `Выполнен откат к версии ${versionId}` : `${versionId} нұсқасына қалпына келтірілді`,
+                message: i18n(currentLanguage, `Выполнен откат к версии ${versionId}`, `${versionId} нұсқасына қалпына келтірілді`, `Rolled back to version ${versionId}`),
                 type: 'warning'
             }
         });
@@ -407,17 +409,17 @@ function exportToExcel() {
     
     // Header
     const processes = db.templates;
-    let headerRow = ["Роль / Должность", "Отдел"];
+    let headerRow = [i18n(currentLanguage, "Роль / Должность", "Роль / Лауазым", "Role / Position"), i18n(currentLanguage, "Отдел", "Бөлім", "Department")];
     processes.forEach(proc => {
-        headerRow.push(currentLanguage === 'ru' ? proc.nameRu : proc.nameKk);
+        headerRow.push(pickName(proc, currentLanguage));
     });
     csvContent += headerRow.map(h => `"${h.replace(/"/g, '""')}"`).join(";") + "\n";
 
     // Rows
     db.roles.forEach(role => {
         const dept = db.departments.find(d => d.id === role.deptId);
-        const roleName = currentLanguage === 'ru' ? role.nameRu : role.nameKk;
-        const deptName = dept ? (currentLanguage === 'ru' ? dept.nameRu : dept.nameKk) : '';
+        const roleName = pickName(role, currentLanguage);
+        const deptName = dept ? (pickName(dept, currentLanguage)) : '';
         
         let row = [roleName, deptName];
         processes.forEach(proc => {

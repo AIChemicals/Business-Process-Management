@@ -1,6 +1,7 @@
-import db from './data.js?v=1.0.5';
-import { updateSimulationSpeed } from './engine.js?v=1.0.5';
-import { customAlert, customConfirm } from './dialogs.js?v=1.0.5';
+import { pickName, tr as i18n } from './locale.js?v=1.1.0';
+import db from './data.js?v=1.1.0';
+import { updateSimulationSpeed } from './engine.js?v=1.1.0';
+import { customAlert, customConfirm } from './dialogs.js?v=1.1.0';
 
 let currentLanguage = 'ru';
 
@@ -63,7 +64,7 @@ function renderDepts() {
     addRoleDeptSelect.innerHTML = '';
 
     db.departments.forEach(dept => {
-        const name = currentLanguage === 'ru' ? dept.nameRu : dept.nameKk;
+        const name = pickName(dept, currentLanguage);
         const li = document.createElement('li');
         li.className = 'admin-list-item';
         li.innerHTML = `
@@ -85,8 +86,8 @@ function renderRoles() {
 
     db.roles.forEach(role => {
         const dept = db.departments.find(d => d.id === role.deptId);
-        const deptName = dept ? (currentLanguage === 'ru' ? dept.nameRu : dept.nameKk) : '';
-        const name = currentLanguage === 'ru' ? role.nameRu : role.nameKk;
+        const deptName = dept ? (pickName(dept, currentLanguage)) : '';
+        const name = pickName(role, currentLanguage);
         
         const li = document.createElement('li');
         li.className = 'admin-list-item';
@@ -130,9 +131,7 @@ function removeDepartment(deptId) {
     // Check if roles are associated with this dept
     const hasRoles = db.roles.some(r => r.deptId === deptId);
     if (hasRoles) {
-        customAlert(currentLanguage === 'ru' 
-            ? 'Ошибка: невозможно удалить отдел, в котором содержатся активные роли!' 
-            : 'Қате: ішінде белсенді рольдері бар бөлімді жою мүмкін емес!');
+        customAlert(i18n(currentLanguage, 'Ошибка: невозможно удалить отдел, в котором содержатся активные роли!', 'Қате: ішінде белсенді рольдері бар бөлімді жою мүмкін емес!', 'Error: cannot delete a department that contains active roles!'));
         return;
     }
 
@@ -161,7 +160,7 @@ function addRole() {
 }
 
 async function removeRole(roleId) {
-    if (await customConfirm(currentLanguage === 'ru' ? 'Удалить эту роль из справочника?' : 'Бұл рольді анықтамалықтан жою керек пе?')) {
+    if (await customConfirm(i18n(currentLanguage, 'Удалить эту роль из справочника?', 'Бұл рольді анықтамалықтан жою керек пе?', 'Delete this role from the catalog?'))) {
         db.roles = db.roles.filter(r => r.id !== roleId);
         db.save();
         renderRoles();
@@ -170,9 +169,7 @@ async function removeRole(roleId) {
 }
 
 async function resetDatabase() {
-    if (await customConfirm(currentLanguage === 'ru' 
-        ? 'Вы действительно хотите сбросить все изменения? Это удалит ваши процессы, задачи и настройки.' 
-        : 'Шынымен барлық өзгерістерді нөлге түсіргіңіз келе ме? Бұл сіздің процестеріңізді, тапсырмаларыңызды және баптауларыңызды жояды.')) {
+    if (await customConfirm(i18n(currentLanguage, 'Вы действительно хотите сбросить все изменения? Это удалит ваши процессы, задачи и настройки.', 'Шынымен барлық өзгерістерді нөлге түсіргіңіз келе ме? Бұл сіздің процестеріңізді, тапсырмаларыңызды және баптауларыңызды жояды.', 'Do you really want to reset all changes? This will delete your processes, tasks and settings.'))) {
         db.reset();
         window.location.reload();
     }
