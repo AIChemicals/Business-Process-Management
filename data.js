@@ -124,6 +124,7 @@ const DEFAULT_INSTANCES = [
         status: "completed",
         currentNodeId: "node_end",
         startedAt: "2026-07-05T09:00:00Z",
+        completedAt: "2026-07-08T15:00:00Z",
         variables: { budget: 200000 },
         auditTrail: [
             { nodeId: "node_start", action: "start", userId: "role_initiator", timestamp: "2026-07-05T09:00:00Z" },

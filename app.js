@@ -33,7 +33,41 @@ window.addEventListener('DOMContentLoaded', () => {
     initAdmin(currentLanguage);
 
     renderExternalPortal();
+
+    applyDeepLink();
 });
+
+// Deep-linking: open a specific tab / language / theme via URL,
+// e.g. index.html?lang=en&theme=light#analytics
+function applyDeepLink() {
+    const params = new URLSearchParams(location.search);
+
+    const qLang = params.get('lang');
+    if (qLang && ['ru', 'kk', 'en'].includes(qLang) && qLang !== currentLanguage) {
+        changeLanguage(qLang);
+    }
+
+    const qTheme = params.get('theme');
+    if (qTheme === 'light' || qTheme === 'dark') {
+        applyTheme(qTheme);
+    }
+
+    const qRole = params.get('role');
+    if (qRole && db.roles.find(r => r.id === qRole)) {
+        activeUserRoleId = qRole;
+        userRoleSelect.value = qRole;
+        localStorage.setItem('bpm_active_role', qRole);
+        updateUserRole(qRole);
+        renderExternalPortal();
+    }
+
+    const viewId = (location.hash || '').replace('#', '');
+    const validViews = ['matrix', 'modeler', 'tasks', 'external', 'analytics', 'admin'];
+    if (validViews.includes(viewId)) {
+        navItems.forEach(i => i.classList.toggle('active', i.dataset.view === viewId));
+        switchView(viewId);
+    }
+}
 
 function cacheElements() {
     navItems = document.querySelectorAll('.nav-item');
