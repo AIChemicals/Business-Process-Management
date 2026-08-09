@@ -1,6 +1,6 @@
-import { pickName, tr as i18n } from './locale.js?v=1.1.0';
-import db from './data.js?v=1.1.0';
-import { customPrompt } from './dialogs.js?v=1.1.0';
+import { pickName, tr as i18n } from './locale.js?v=2.0.0';
+import db from './data.js?v=2.0.0';
+import { customPrompt } from './dialogs.js?v=2.0.0';
 
 let currentLanguage = 'ru';
 let activeTemplate = null;

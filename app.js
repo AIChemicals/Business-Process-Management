@@ -1,12 +1,16 @@
-import { pickName, tr as i18n } from './locale.js?v=1.1.0';
-import db from './data.js?v=1.1.0';
-import translations from './locale.js?v=1.1.0';
-import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js?v=1.1.0';
-import { initModeler, updateLanguage as updateModelerLang } from './modeler.js?v=1.1.0';
-import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js?v=1.1.0';
-import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js?v=1.1.0';
-import { initAdmin, updateLanguage as updateAdminLang } from './admin.js?v=1.1.0';
-import { setDialogsLanguage } from './dialogs.js?v=1.1.0';
+import { pickName, tr as i18n } from './locale.js?v=2.0.0';
+import db from './data.js?v=2.0.0';
+import translations from './locale.js?v=2.0.0';
+import { initMatrix, updateLanguage as updateMatrixLang, renderMatrix } from './matrix.js?v=2.0.0';
+import { initModeler, updateLanguage as updateModelerLang } from './modeler.js?v=2.0.0';
+import { initEngine, updateLanguage as updateEngineLang, updateUserRole, renderTasks, startProcessDirectly } from './engine.js?v=2.0.0';
+import { initAnalytics, updateLanguage as updateAnalyticsLang } from './analytics.js?v=2.0.0';
+import { initAdmin, updateLanguage as updateAdminLang } from './admin.js?v=2.0.0';
+import { setDialogsLanguage } from './dialogs.js?v=2.0.0';
+import * as api from './api.js?v=2.0.0';
+import { initAuth, updateLanguage as updateAuthLang } from './auth.js?v=2.0.0';
+import { initAssistant, updateLanguage as updateAssistantLang } from './assistant.js?v=2.0.0';
+import { initBilling, updateLanguage as updateBillingLang, refreshBilling } from './billing.js?v=2.0.0';
 
 let currentLanguage = 'ru';
 let activeUserRoleId = 'role_initiator';
@@ -31,8 +35,15 @@ window.addEventListener('DOMContentLoaded', () => {
     initEngine(currentLanguage, activeUserRoleId);
     initAnalytics(currentLanguage);
     initAdmin(currentLanguage);
+    initAuth(currentLanguage);
+    initAssistant(currentLanguage);
+    initBilling(currentLanguage);
 
     renderExternalPortal();
+    setupServerDocButtons();
+
+    // Любое сохранение локальной базы уходит на сервер (если выполнен вход)
+    window.addEventListener('bpm-db-saved', () => api.scheduleWorkspaceSync());
 
     applyDeepLink();
 });
@@ -62,7 +73,7 @@ function applyDeepLink() {
     }
 
     const viewId = (location.hash || '').replace('#', '');
-    const validViews = ['matrix', 'modeler', 'tasks', 'external', 'analytics', 'admin'];
+    const validViews = ['matrix', 'modeler', 'tasks', 'external', 'analytics', 'assistant', 'billing', 'admin'];
     if (validViews.includes(viewId)) {
         navItems.forEach(i => i.classList.toggle('active', i.dataset.view === viewId));
         switchView(viewId);
@@ -211,6 +222,8 @@ function switchView(viewId) {
         tasks: 'tasksTitle',
         external: 'externalTitle',
         analytics: 'analyticsTitle',
+        assistant: 'assistantTitle',
+        billing: 'billingTitle',
         admin: 'adminTitle'
     };
 
@@ -223,6 +236,8 @@ function switchView(viewId) {
         renderExternalPortal();
     } else if (viewId === 'tasks') {
         renderTasks();
+    } else if (viewId === 'billing') {
+        refreshBilling();
     }
 
     translateDOM();
@@ -245,8 +260,69 @@ function changeLanguage(lang) {
     updateEngineLang(lang);
     updateAnalyticsLang(lang);
     updateAdminLang(lang);
+    updateAuthLang(lang);
+    updateAssistantLang(lang);
+    updateBillingLang(lang);
 
     renderExternalPortal();
+}
+
+// Кнопки серверной генерации официальных документов (DOCX/PDF, ГОСТ-вёрстка).
+// Требуют входа: генерация идёт на бэкенде и учитывается в квоте тарифа.
+function setupServerDocButtons() {
+    const needLogin = () => {
+        if (api.isLoggedIn()) return false;
+        showToast(i18n(currentLanguage,
+            'Войдите в аккаунт: официальные DOCX/PDF генерируются на сервере',
+            'Аккаунтқа кіріңіз: ресми DOCX/PDF серверде генерацияланады',
+            'Sign in: official DOCX/PDF are generated on the server'), 'warning');
+        import('./auth.js?v=2.0.0').then(m => m.openAuthModal('login'));
+        return true;
+    };
+
+    const matrixBtn = document.getElementById('matrix-report-docx');
+    if (matrixBtn) {
+        matrixBtn.addEventListener('click', async () => {
+            if (needLogin()) return;
+            matrixBtn.disabled = true;
+            try {
+                await api.downloadMatrixReport('docx', currentLanguage);
+                showToast(i18n(currentLanguage, 'Отчёт по матрице сформирован', 'Матрица бойынша есеп дайын', 'Matrix report generated'), 'success');
+            } catch (e) {
+                showToast(e.message, 'danger');
+            } finally {
+                matrixBtn.disabled = false;
+            }
+        });
+    }
+
+    const regulationBtn = document.getElementById('modeler-regulation-btn');
+    if (regulationBtn) {
+        regulationBtn.addEventListener('click', async () => {
+            if (needLogin()) return;
+            const select = document.getElementById('modeler-process-select');
+            const templateId = select ? select.value : '';
+            if (!templateId) {
+                showToast(i18n(currentLanguage, 'Сначала выберите процесс', 'Алдымен процесті таңдаңыз', 'Select a process first'), 'warning');
+                return;
+            }
+            const format = (await import('./dialogs.js?v=2.0.0').then(m =>
+                m.customConfirm(i18n(currentLanguage,
+                    'Скачать регламент в PDF? («Отмена» — скачать DOCX)',
+                    'Регламентті PDF форматында жүктеу керек пе? («Болдырмау» — DOCX)',
+                    'Download regulation as PDF? ("Cancel" downloads DOCX)'))))
+                ? 'pdf' : 'docx';
+            regulationBtn.disabled = true;
+            try {
+                await api.downloadRegulation(templateId, format, currentLanguage);
+                showToast(i18n(currentLanguage, 'Регламент процесса сформирован', 'Процесс регламенті дайын', 'Process regulation generated'), 'success');
+            } catch (e) {
+                showToast(e.message, 'danger');
+            } finally {
+                regulationBtn.disabled = false;
+            }
+        });
+    }
 }
 
 function translateDOM() {

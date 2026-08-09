@@ -1,7 +1,7 @@
-import { pickName, tr as i18n } from './locale.js?v=1.1.0';
-import db from './data.js?v=1.1.0';
-import { updateSimulationSpeed } from './engine.js?v=1.1.0';
-import { customAlert, customConfirm } from './dialogs.js?v=1.1.0';
+import { pickName, tr as i18n } from './locale.js?v=2.0.0';
+import db from './data.js?v=2.0.0';
+import { updateSimulationSpeed } from './engine.js?v=2.0.0';
+import { customAlert, customConfirm } from './dialogs.js?v=2.0.0';
 
 let currentLanguage = 'ru';
 

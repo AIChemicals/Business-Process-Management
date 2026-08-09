@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bpm-frontend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "http-server", "-p", "8080", "-c-1"],
+      "port": 8080
+    },
+    {
+      "name": "bpm-backend",
+      "runtimeExecutable": "backend/.venv/bin/python",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--port", "8000", "--app-dir", "backend"],
+      "port": 8000
+    }
+  ]
+}

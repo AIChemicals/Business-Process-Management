@@ -9,6 +9,11 @@ const translations = {
         navExternal: "Внешний портал",
         navAnalytics: "Аналитика и SLA",
         navAdmin: "Администрирование",
+        navAssistant: "ИИ-ассистент",
+        navBilling: "Тарифы и оплата",
+        assistantTitle: "ИИ-ассистент по процессам",
+        billingTitle: "Тарифы и оплата",
+        notifClearAll: "Очистить все",
 
         // Common
         add: "Добавить",
@@ -152,6 +157,11 @@ const translations = {
         navExternal: "Сыртқы портал",
         navAnalytics: "Аналитика және SLA",
         navAdmin: "Әкімшілендіру",
+        navAssistant: "AI-көмекші",
+        navBilling: "Тарифтер және төлем",
+        assistantTitle: "Процестер бойынша AI-көмекші",
+        billingTitle: "Тарифтер және төлем",
+        notifClearAll: "Барлығын тазалау",
 
         // Common
         add: "Қосу",
@@ -295,6 +305,11 @@ const translations = {
         navExternal: "External Portal",
         navAnalytics: "Analytics & SLA",
         navAdmin: "Administration",
+        navAssistant: "AI Assistant",
+        navBilling: "Plans & Billing",
+        assistantTitle: "AI Process Assistant",
+        billingTitle: "Plans & Billing",
+        notifClearAll: "Clear all",
 
         // Common
         add: "Add",

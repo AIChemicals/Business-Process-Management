@@ -38,6 +38,14 @@
                 <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
                 <span data-localize="navAnalytics">Аналитика и SLA</span>
             </a>
+            <a class="nav-item" data-view="assistant">
+                <svg viewBox="0 0 24 24"><path d="M12 8V4H8m8 0h-4m-6 8a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2v-6zM2 14h2m16 0h2M9 15h.01M15 15h.01"/></svg>
+                <span data-localize="navAssistant">ИИ-ассистент</span>
+            </a>
+            <a class="nav-item" data-view="billing">
+                <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span data-localize="navBilling">Тарифы и оплата</span>
+            </a>
             <a class="nav-item" data-view="admin">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                 <span data-localize="navAdmin">Администрирование</span>
@@ -45,6 +53,9 @@
         </nav>
 
         <div class="sidebar-footer">
+            <div id="account-box" style="margin-bottom: 12px;">
+                <!-- Карточка аккаунта: рендерится auth.js -->
+            </div>
             <div class="sim-time-box">
                 <div class="sim-time-label" data-localize="adminSimTime">Системное время</div>
                 <div class="sim-time-val" id="sim-clock">2026-07-13 15:48:00</div>
@@ -92,7 +103,7 @@
         <div class="notifications-drawer" id="notif-drawer">
             <div class="notif-header">
                 <span data-localize="notification">Уведомления</span>
-                <button class="notif-clear-btn" id="notif-clear-btn">Clear All</button>
+                <button class="notif-clear-btn" id="notif-clear-btn" data-localize="notifClearAll">Очистить все</button>
             </div>
             <div class="notif-list" id="notif-list-container">
                 <!-- Notifications loaded dynamically -->
@@ -123,6 +134,10 @@
                     <button class="btn btn-secondary" id="matrix-export-pdf">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
                         <span data-localize="exportPDF">Экспорт PDF</span>
+                    </button>
+                    <button class="btn btn-secondary" id="matrix-report-docx" title="Официальный отчёт (сервер, Times New Roman 12)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        <span>DOCX</span>
                     </button>
                     <button class="btn btn-primary" id="matrix-add-row-btn">
                         <span data-localize="matrixAddRow">Добавить роль</span>
@@ -183,6 +198,10 @@
                         </button>
                         <button class="btn btn-danger" id="modeler-run-btn">
                             <span data-localize="modelerRunSim">Запуск симуляции</span>
+                        </button>
+                        <button class="btn btn-secondary" id="modeler-regulation-btn" title="Скачать регламент процесса (DOCX/PDF)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
+                            <span>Регламент</span>
                         </button>
                     </div>
 
@@ -412,6 +431,12 @@
             </div>
         </main>
 
+        <!-- VIEW: AI Assistant (рендерится assistant.js) -->
+        <main class="view-container" id="view-assistant"></main>
+
+        <!-- VIEW: Plans & Billing (рендерится billing.js) -->
+        <main class="view-container" id="view-billing"></main>
+
         <!-- VIEW 6: Administration -->
         <main class="view-container" id="view-admin">
             <div class="view-title-container">
@@ -606,6 +631,7 @@
     <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 350px;"></div>
 
     <!-- Script imports -->
-    <script type="module" src="app.js?v=1.1.0"></script>
+    <script src="config.js?v=2.0.0"></script>
+    <script type="module" src="app.js?v=2.0.0"></script>
 </body>
 </html>

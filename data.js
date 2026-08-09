@@ -205,6 +205,10 @@ class Database {
         localStorage.setItem("bpm_tasks", JSON.stringify(this.tasks));
         localStorage.setItem("bpm_system_time", this.systemTime);
         localStorage.setItem("bpm_time_speed", this.timeSpeed.toString());
+
+        // Сигнал модулю синхронизации (api.js): локальный снимок изменился —
+        // отправить на сервер (отложенно, частые сохранения склеиваются).
+        window.dispatchEvent(new CustomEvent('bpm-db-saved'));
     }
 
     reset() {

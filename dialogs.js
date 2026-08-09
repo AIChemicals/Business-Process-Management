@@ -1,5 +1,5 @@
-import { pickName, tr as i18n } from './locale.js?v=1.1.0';
-import translations from './locale.js?v=1.1.0';
+import { pickName, tr as i18n } from './locale.js?v=2.0.0';
+import translations from './locale.js?v=2.0.0';
 
 let currentLanguage = 'ru';
 

@@ -1,61 +1,135 @@
-# BPM System and Role-Functional Matrix
+# BPM Platform — система управления бизнес-процессами
 
-A high-fidelity, web-based Business Process Management (BPM) system prototype built in accordance with the project's Technical Specification (ТЗ) for digitalizing, automating, and mapping business processes of a corporate unit.
+BPM-система для цифровизации и автоматизации бизнес-процессов блока с единой
+ролево-функциональной матрицей (по ТЗ — см. `TOR_BPM_project.pdf`).
+Интерфейс на русском и казахском (+ английский).
 
-## 🚀 Key Features
+**v2.0**: у прототипа появился полноценный бэкенд — аккаунты с подтверждением
+почты и восстановлением пароля, серверная база данных, тарифы с оплатой,
+ИИ-ассистент и генерация официальных документов.
 
-1. **Role-Functional Matrix Module**
-   - Renders a unified grid linking Departments, Roles, Functions, and Processes.
-   - Interactive search and filter panel (by role/department/process).
-   - Real-time cell editing modal with dynamic responsibility mapping.
-   - Automated Excel export (generates standard CSV with UTF-8 BOM encoding).
-   - PDF Print Layout (pre-styled print stylesheet removes sidebars/headers for professional reports).
-   - History logging & version tracking (rollback to previous version snapshots).
+## Модули
 
-2. **Visual BPMN Modeler**
-   - SVG-based drag-and-drop workflow canvas.
-   - BPMN 2.0-aligned elements: Start Event, User Task, Gateway Condition, External Task, End Event.
-   - Interactive connection tool (drag connectors between nodes).
-   - Inspector panel to configure step details (name, assignee role, SLA hours, gateway conditional branches).
-   - Instant "Run Simulation" trigger linking visual templates to execution nodes.
+| Модуль | Что делает |
+|---|---|
+| **Ролевая матрица** | Грид «роль — функция — процесс», поиск/фильтры, версии с откатом, экспорт Excel/PDF + официальный DOCX-отчёт с сервера |
+| **Конструктор процессов** | SVG-редактор BPMN 2.0 (задачи, шлюзы, внешние этапы), инспектор свойств, симуляция + выгрузка регламента процесса (DOCX/PDF) |
+| **Workflow-движок** | Запуск экземпляров, маршрутизация задач по ролям, условные переходы (бюджет), SLA-контроль, эскалации, аудиторский след |
+| **Внешний портал** | Учёт запросов во внешние организации и статусов исполнения |
+| **Аналитика и SLA** | KPI, графики длительности и нагрузки, реестр узких мест |
+| **ИИ-ассистент** | Чат по процессам/нормативке со ссылками на официальные источники; генерация BPMN-шаблона из текстового описания |
+| **Тарифы и оплата** | Free/Pro/Enterprise, оплата Kaspi QR или картой, квоты на ИИ и документы |
+| **Администрирование** | Справочники в интерфейсе + серверная админка `/admin` (пользователи, подписки, платежи, workspaces) |
 
-3. **Workflow Engine & Simulation Clock**
-   - Active process instance launcher with custom parameters (e.g. budget variables to check gateways).
-   - Sim Clock generator: advances time in hours (configurable speed multiplier e.g., 1s real-time = 1 hour simulated).
-   - Inbox/Registry: filter tasks by simulated active role (lets you act as Initiator, Legal, Finance, Director, etc., to complete workflows).
-   - SLA tracking with warnings (≤6 hours remaining) and breach alerts.
-   - Interactive comment threads and document attachments.
+## Архитектура
 
-4. **External Organization Portal**
-   - Tracking table for stages requiring external counterparty involvement (e.g. vendor deliveries).
-   - Simulated external portal view to provide mock approvals and responses, advancing process stages.
+```
+Business-Process-Management/
+├── index.html, *.js, styles.css   фронтенд: vanilla ES-модули, без сборки
+│   ├── config.js                  адрес API (localhost / Render)
+│   ├── api.js                     клиент API + синхронизация workspace
+│   ├── auth.js                    вход/регистрация/восстановление, карточка аккаунта
+│   ├── assistant.js               ИИ-чат и генерация процессов
+│   └── billing.js                 тарифы и оплата
+└── backend/                       FastAPI (Python 3.11+), SQLAlchemy
+    └── app/
+        ├── routers/               auth, workspace, ai, docs, billing
+        ├── services/
+        │   ├── llm/               LLMProvider (OpenRouter → on-prem заменой класса)
+        │   ├── payments/          PaymentProvider (mock для демо, Kaspi Pay боевой)
+        │   ├── emailer.py         SMTP-письма (подтверждение, сброс пароля)
+        │   ├── docgen.py          Markdown → DOCX/PDF (Times New Roman 12, ГОСТ-поля)
+        │   └── workspace_docs.py  сборка регламентов и отчётов из модели процессов
+        ├── models/                users, auth_tokens, subscriptions, payments, workspaces, ai_messages
+        └── admin/                 админка /admin (SQLAdmin поверх тех же моделей)
+```
 
-5. **Analytics and SLA Monitoring**
-   - Core KPIs: active processes, completed cycles, SLA compliance rate, average process duration.
-   - Dynamic SVG Charts: average process duration bars, load indicators by department, and active/overdue trends.
-   - Bottlenecks registry listing steps that breach SLA.
+Данные работают по схеме «локально + сервер»: браузерная копия (localStorage)
+остаётся кэшем для офлайн-демо, после входа каждый снимок автоматически
+синхронизируется с Postgres/SQLite на бэкенде (`PUT /api/workspace`).
 
-6. **Administration**
-   - Manage core organizational structure guides (Add/Delete Departments and Roles).
-   - Simulation controls (speed settings slider, reset database back to defaults).
-   - Multilingual localization support for Russian (RU) and Kazakh (KK).
+## Запуск локально
 
-## 🛠️ Technology Stack
-- **Frontend Core**: Vanilla HTML5, ES6+ Javascript modules.
-- **Styling**: Vanilla CSS3 (Custom design system variables, glassmorphism, responsive grid, print media rules).
-- **Libraries**: Fully self-contained SVG modules (zero external framework dependencies like React/Vue, ensuring zero build latency).
+Бэкенд (Python 3.11+):
 
-## 💻 How to Run Locally
+```bash
+cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/uvicorn app.main:app --port 8000
+```
 
-To launch the system, serve the workspace directory using any simple HTTP server. 
+Фронтенд — любой статический сервер из корня:
 
-Run the following command in your terminal from the project folder:
-
-```powershell
+```bash
 npx -y http-server -p 8080
 ```
 
-Once running, open your web browser and navigate to:
-**http://localhost:8080**
+Открыть **http://localhost:8080**. Бэкенд по умолчанию на SQLite — Postgres не нужен.
+Конфигурация — файл `.env` в корне (см. `.env.example`).
 
-*Note: The system automatically persists all templates, matrix changes, running instances, and tasks in your browser's `localStorage` so that your simulated runs and designs remain intact upon page refresh.*
+Без настроенного SMTP ссылки подтверждения почты и сброса пароля работают в
+dev-режиме (открываются сразу в этой же вкладке) — для боевого стенда заполните
+`SMTP_*`. Платёжный провайдер по умолчанию `mock`: оплата «проходит» через
+9 секунд, тестовая карта отказа — `4000 0000 0000 0002`. Для боевых платежей —
+`PAYMENT_PROVIDER=kaspi` и реквизиты мерчанта Kaspi.
+
+## Облачный деплой
+
+| Что | Где | Чем описано |
+|---|---|---|
+| Фронтенд (статика) | Vercel | корень репозитория, настроек не требует |
+| Бэкенд + Postgres | Render | `render.yaml` (Blueprint) |
+
+Render: Dashboard → New → Blueprint → выбрать репозиторий. Секреты
+(`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `OPENROUTER_API_KEY`, `FRONTEND_BASE_URL`, SMTP)
+Render спросит сам. Если Render добавил суффикс к имени сервиса
+`bpm-platform-backend` — поправьте адрес в `config.js`.
+
+Ограничения free-тарифа Render: сервис засыпает после ~15 минут простоя
+(первый запрос идёт 30–60 с), бесплатный Postgres живёт 90 дней.
+
+## Админка
+
+`/admin` на бэкенде — SQLAdmin поверх той же базы: пользователи (права, статус,
+подтверждение почты), подписки, платежи, workspaces, история ИИ, auth-токены.
+Первый администратор — из `ADMIN_EMAIL`/`ADMIN_PASSWORD` при старте. Пока пароль
+не задан, вход закрыт; отключить панель целиком — `ADMIN_ENABLED=false`.
+
+## ИИ и данные
+
+- Единая точка вызова LLM — `LLMProvider` (`backend/app/services/llm/`); id моделей
+  сверены с каталогом OpenRouter. Для госсектора провайдер меняется на локальную
+  модель (vLLM/Ollama) одним классом + переменной окружения.
+- Политика данных: `LLM_DATA_COLLECTION=deny` — запросы маршрутизируются только
+  к провайдерам, которые не хранят и не обучаются на переданном тексте.
+- Ассистенту запрещено промптом выдумывать нормы: ссылается только на официальные
+  источники из списка ниже, при неуверенности отправляет проверять на adilet.zan.kz.
+- Реквизиты карт не сохраняются и не логируются (транзит до провайдера; в базе —
+  только бренд и последние 4 цифры). Токены подтверждения/сброса хранятся хешем.
+- Вход, регистрация и админка — под лимитом попыток по IP (защита от перебора).
+
+## Официальные источники
+
+Нормативные основания, на которые ссылаются ассистент и генерируемые документы
+(только эталонные публикации):
+
+- [Закон РК «О персональных данных и их защите» № 94-V от 21.05.2013](https://adilet.zan.kz/rus/docs/Z1300000094)
+- [Закон РК «Об информатизации» № 418-V от 24.11.2015](https://adilet.zan.kz/rus/docs/Z1500000418)
+- [Закон РК «Об электронном документе и ЭЦП» № 370-II от 07.01.2003](https://adilet.zan.kz/rus/docs/Z030000370_)
+- [Трудовой кодекс РК № 414-V от 23.11.2015](https://adilet.zan.kz/rus/docs/K1500000414)
+- [Гражданский кодекс РК (Общая часть)](https://adilet.zan.kz/rus/docs/K940001000_)
+- [Предпринимательский кодекс РК № 375-V от 29.10.2015](https://adilet.zan.kz/rus/docs/K1500000375)
+- [BPMN 2.0 — OMG, ISO/IEC 19510:2013](https://www.omg.org/spec/BPMN/2.0/)
+- [adilet.zan.kz — эталонный контрольный банк НПА РК](https://adilet.zan.kz/)
+
+Вёрстка генерируемых документов — Times New Roman (Tinos, метрически совместим,
+лицензия OFL позволяет вшивать в PDF) 12 пт, поля по ГОСТ Р 7.0.97-2016.
+
+## Тарифы
+
+| Тариф | Цена | ИИ-запросы/мес | Документы/мес |
+|---|---|---|---|
+| Бесплатный | 0 ₸ | 15 | 3 |
+| Профессиональный | 9 990 ₸/мес | 300 | 100 |
+| Enterprise / Госсектор | по запросу | без лимита | без лимита |
+
+Моделирование процессов, матрица и workflow-движок бесплатны без ограничений —
+квоты касаются только серверных операций (ИИ, генерация документов).
